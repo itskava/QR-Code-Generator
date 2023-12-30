@@ -8,7 +8,7 @@ namespace QR_Code_Generator
     /// </summary>
     internal static class ServiceInformation
     {
-        /* This array represents maximum amount of bytes that can be encoded in QR-code of each version.
+        /* This array represents maximum amount of bits that can be encoded in QR-code of each version.
            This data corresponds to the M correction level. */
         private static readonly short[] maxAmountOfInformation =
         {
@@ -80,7 +80,7 @@ namespace QR_Code_Generator
             return dataQuantity;
         }
 
-        private static int GetDataQuantityLength(int version) => (version < 10) ? 8 : 16; // This method is used to get the amount of bytes for data quantity
+        private static int GetDataQuantityLength(int version) => (version < 10) ? 8 : 16; // This method is used to get the amount of bits for data quantity
 
         private static void FillSequence() /* This method is used to fill the sequence so its length is equal to the
                                               maximum amount of informarion that can be stored in the QR code of
