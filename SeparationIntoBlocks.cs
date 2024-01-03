@@ -39,7 +39,7 @@ namespace QR_Code_Generator
             blocksQuantity = blocksQuantities[ServiceInformation.Version - 1];
             blockSizeInBytes = (short)(byteQuantity / blocksQuantity);
             remainder = (short)(byteQuantity % blocksQuantity);
-            blocks = new string[blocksQuantity];
+            Blocks = new string[blocksQuantity];
         }
 
         /* This method is used to separate the sequence into a blocks */
@@ -50,7 +50,7 @@ namespace QR_Code_Generator
             {
                 int leftIndex = i * blockSizeInBytes * 8;
                 int rightIndex = (i + 1) * blockSizeInBytes * 8;
-                blocks[i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
+                Blocks[i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
             }
 
             blockSizeInBytes++;
@@ -59,7 +59,7 @@ namespace QR_Code_Generator
                 int length = ServiceInformation.BitSequence.Length;
                 int rightIndex = length - (i - 1) * blockSizeInBytes * 8;
                 int leftIndex = length - i * blockSizeInBytes * 8;
-                blocks[^i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
+                Blocks[^i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
             }
         }
     }
