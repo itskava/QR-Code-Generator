@@ -2,25 +2,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace QR_Code_Generator
 {
-    namespace QRcodeAlgorithm
+    internal class CorrectionBytesCreation
     {
-        internal class CorrectionBytesCreation
+        private static readonly byte[] m_CorrectionBytesAmountPerBlock =
         {
-            private static readonly byte[] m_CorrectionBytesAmountPerBlock =
-            {
             10, 16, 26, 18, 24, 16, 18, 22, 22, 26,
             30, 22, 22, 24, 24, 28, 28, 26, 26, 26,
             26, 28, 28, 28, 28, 28, 28, 28, 28, 28,
             28, 28, 28, 28, 28, 28, 28, 28, 28, 28
         };
 
-            private static byte correctionBytesAmountPerBlock;
+        private static byte correctionBytesAmountPerBlock;
 
-            private static readonly SortedDictionary<byte, byte[]> generatingPolynomials = new()
+        private static readonly SortedDictionary<byte, byte[]> generatingPolynomials = new()
         {
             {7, new byte[] { 87, 229, 146, 149, 238, 102, 21 } },
 
@@ -58,10 +57,10 @@ namespace QR_Code_Generator
                 86, 239, 96, 222, 125, 42, 173, 226, 193, 224, 130, 156, 37, 251, 216, 238, 40, 192, 180 } }
         };
 
-            private static byte[] generatingPolynomial;
+        private static byte[] generatingPolynomial;
 
-            private static readonly byte[] galoisField =
-            {
+        private static readonly byte[] galoisField =
+        {
             1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 19, 38,
             76, 152, 45, 90, 180, 117, 234, 201, 143, 3, 6, 12, 24, 48, 96, 192,
             157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181, 119, 238, 193, 159, 35,
@@ -80,8 +79,8 @@ namespace QR_Code_Generator
             44, 88, 176, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 1
         };
 
-            private static readonly byte?[] reverseGaloisField =
-            {
+        private static readonly byte?[] reverseGaloisField =
+        {
             null, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75,
             4, 100, 224, 14, 52, 141, 239, 129, 28, 193, 105, 248, 200, 8, 76, 113,
             5, 138, 101, 47, 225, 36, 15, 33, 53, 147, 142, 218, 240, 18, 130, 69,
@@ -99,83 +98,82 @@ namespace QR_Code_Generator
             203, 89, 95, 176, 156, 169, 160, 81, 11, 245, 22, 235, 122, 117, 44, 215,
             79, 174, 213, 233, 230, 231, 173, 232, 116, 214, 244, 234, 168, 80, 88, 175
         };
+        public static byte[][] CorrectionBlocks { get; private set; }
 
-            public static byte[][] CorrectionBlocks { get; private set; }
+        private static short correctionBytesIndex;
 
-            private static short correctionBytesIndex = 0;
+        private static void GetGeneratingPolynomial()
+        {
+            correctionBytesAmountPerBlock = m_CorrectionBytesAmountPerBlock[ServiceInformation.Version - 1];
+            generatingPolynomial = new byte[correctionBytesAmountPerBlock];
+            byte[] polynomial = generatingPolynomials[correctionBytesAmountPerBlock];
+            Array.Copy(polynomial, generatingPolynomial, correctionBytesAmountPerBlock);
+        }
 
-            private static void GetGeneratingPolynomial()
+        public static void CreateCorrectionBytes()
+        {
+            GetGeneratingPolynomial();
+            CorrectionBlocks = new byte[SeparationIntoBlocks.Blocks.Length][];
+            correctionBytesIndex = 0;
+
+            foreach (string block in SeparationIntoBlocks.Blocks)
             {
-                correctionBytesAmountPerBlock = m_CorrectionBytesAmountPerBlock[ServiceInformation.Version - 1];
-                generatingPolynomial = new byte[correctionBytesAmountPerBlock];
-                byte[] polynomial = generatingPolynomials[correctionBytesAmountPerBlock];
-                Array.Copy(polynomial, generatingPolynomial, correctionBytesAmountPerBlock);
-            }
+                short blockSizeInBytes = (short)(block.Length / 8);
+                short length = short.Max(blockSizeInBytes, correctionBytesAmountPerBlock);
 
-            public static void CreateCorrectionBytes()
-            {
-                GetGeneratingPolynomial();
-                CorrectionBlocks = new byte[SeparationIntoBlocks.Blocks.Length][];
+                List<byte> correctionBytes = new List<byte>(length);
+                FillCorrectionBlock(correctionBytes, block);
 
-                foreach (string block in SeparationIntoBlocks.Blocks)
+                for (int i = 0; i < blockSizeInBytes; ++i)
                 {
-                    short blockSizeInBytes = (short)(block.Length / 8);
-                    short length = short.Max(blockSizeInBytes, correctionBytesAmountPerBlock);
+                    byte a = correctionBytes.ElementAt(0);
+                    correctionBytes.RemoveAt(0);
+                    correctionBytes.Add(0);
 
-                    List<byte> correctionBytes = new List<byte>(length);
-                    FillCorrectionBlock(correctionBytes, block);
+                    if (a == 0) continue;
 
-                    for (int i = 0; i < blockSizeInBytes; ++i)
+                    byte[] polynomial = new byte[correctionBytesAmountPerBlock]; // Copying is expensive, remake
+                    Array.Copy(generatingPolynomial, polynomial, generatingPolynomial.Length);
+
+                    byte b = (byte)reverseGaloisField[a];
+
+                    for (int j = 0; j < correctionBytesAmountPerBlock; ++j)
                     {
-                        byte a = correctionBytes.ElementAt(0);
-                        correctionBytes.RemoveAt(0);
-                        correctionBytes.Add(0);
-
-                        if (a == 0) continue;
-
-                        byte[] polynomial = new byte[correctionBytesAmountPerBlock]; // Copying is expensive, remake
-                        Array.Copy(generatingPolynomial, polynomial, generatingPolynomial.Length);
-
-                        byte b = (byte)reverseGaloisField[a];
-
-                        for (int j = 0; j < correctionBytesAmountPerBlock; ++j)
-                        {
-                            polynomial[j] = (byte)((polynomial[j] + b) % 255);
-                            polynomial[j] = (byte)(galoisField[polynomial[j]]);
-                            correctionBytes[j] = (byte)(correctionBytes[j] ^ polynomial[j]);
-                        }
+                        polynomial[j] = (byte)((polynomial[j] + b) % 255);
+                        polynomial[j] = (byte)(galoisField[polynomial[j]]);
+                        correctionBytes[j] = (byte)(correctionBytes[j] ^ polynomial[j]);
                     }
-
-                    AddCorrectionBlock(correctionBytes);
                 }
-            }
 
-            private static void FillCorrectionBlock(List<byte> correctionBlock, string block)
+                AddCorrectionBlock(correctionBytes);
+            }
+        }
+
+        private static void FillCorrectionBlock(List<byte> correctionBlock, string block)
+        {
+            int index = 0;
+            for (int i = 0; i < block.Length; i += 8)
             {
-                int index = 0;
-                for (int i = 0; i < block.Length; i += 8)
-                {
-                    correctionBlock.Add(Convert.ToByte(block[i..(i + 8)], 2));
-                    index++;
-                }
-
-                while (index++ < correctionBlock.Capacity)
-                {
-                    correctionBlock.Add(0);
-                }
+                correctionBlock.Add(Convert.ToByte(block[i..(i + 8)], 2));
+                index++;
             }
 
-            private static void AddCorrectionBlock(List<byte> block)
+            while (index++ < correctionBlock.Capacity)
             {
-                byte[] correctionBytes = new byte[correctionBytesAmountPerBlock];
-
-                for (int i = 0; i < correctionBytesAmountPerBlock; ++i)
-                {
-                    correctionBytes[i] = block[i];
-                }
-
-                CorrectionBlocks[correctionBytesIndex++] = correctionBytes;
+                correctionBlock.Add(0);
             }
+        }
+
+        private static void AddCorrectionBlock(List<byte> block)
+        {
+            byte[] correctionBytes = new byte[correctionBytesAmountPerBlock];
+
+            for (int i = 0; i < correctionBytesAmountPerBlock; ++i)
+            {
+                correctionBytes[i] = block[i];
+            }
+
+            CorrectionBlocks[correctionBytesIndex++] = correctionBytes;
         }
     }
 }
