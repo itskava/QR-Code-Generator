@@ -28,7 +28,7 @@ namespace QR_Code_Generator
                                                   * have the following sizes: 38, 38, 39, 39, 39. If remainder were 0, 
                                                   * then all the blocks would have a size equal to 38 bytes */
 
-        private static string[] blocks; // An array that represents this blocks
+        public static string[] Blocks { get; private set; } // A property that represents this blocks
 
         /* This method is used to get the data from a given sequence that will be used
          * to separate it into the blocks */
