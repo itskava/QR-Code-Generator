@@ -5,7 +5,7 @@ namespace QR_Code_Generator
     /// <summary>
     /// This class is resposible for dividing a given bit sequence into blocks.
     /// </summary>
-    internal class SeparationIntoBlocks
+    internal static class SeparationIntoBlocks
     {
         /* This array represents the number of blocks into which the bit sequence will be split depending
            on the version and correction level of the QR code */
@@ -17,7 +17,7 @@ namespace QR_Code_Generator
             31, 33, 35, 37, 38, 40, 43, 45, 47, 49
         };
 
-        private static short blockSizeInBytes;
+        public static short BlockSizeInBytes { get; private set; }
 
         private static short blocksQuantity; // The amount of block into which the bit sequence will be split
 
@@ -34,10 +34,10 @@ namespace QR_Code_Generator
          * to separate it into the blocks */
         private static void GetSequenceData()
         {
-            short byteQuantity = (short)(ServiceInformation.BitSequence.Length / 8);
+            short byteQuantity = (short)(Configuration.BitSequence.Length / 8);
 
-            blocksQuantity = blocksQuantities[ServiceInformation.Version - 1];
-            blockSizeInBytes = (short)(byteQuantity / blocksQuantity);
+            blocksQuantity = blocksQuantities[Configuration.Version - 1];
+            BlockSizeInBytes = (short)(byteQuantity / blocksQuantity);
             remainder = (short)(byteQuantity % blocksQuantity);
             Blocks = new string[blocksQuantity];
         }
@@ -48,18 +48,18 @@ namespace QR_Code_Generator
             GetSequenceData();
             for (int i = 0; i < blocksQuantity - remainder; ++i)
             {
-                int leftIndex = i * blockSizeInBytes * 8;
-                int rightIndex = (i + 1) * blockSizeInBytes * 8;
-                Blocks[i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
+                int leftIndex = i * BlockSizeInBytes * 8;
+                int rightIndex = (i + 1) * BlockSizeInBytes * 8;
+                Blocks[i] = Configuration.BitSequence[leftIndex..rightIndex];
             }
 
-            blockSizeInBytes++;
+            BlockSizeInBytes++;
             for (int i = 1; i <= remainder; ++i)
             {
-                int length = ServiceInformation.BitSequence.Length;
-                int rightIndex = length - (i - 1) * blockSizeInBytes * 8;
-                int leftIndex = length - i * blockSizeInBytes * 8;
-                Blocks[^i] = ServiceInformation.BitSequence[leftIndex..rightIndex];
+                int length = Configuration.BitSequence.Length;
+                int rightIndex = length - (i - 1) * BlockSizeInBytes * 8;
+                int leftIndex = length - i * BlockSizeInBytes * 8;
+                Blocks[^i] = Configuration.BitSequence[leftIndex..rightIndex];
             }
         }
     }

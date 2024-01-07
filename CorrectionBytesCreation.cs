@@ -7,7 +7,7 @@ using System.Text;
 
 namespace QR_Code_Generator
 {
-    internal class CorrectionBytesCreation
+    internal static class CorrectionBytesCreation
     {
         private static readonly byte[] m_CorrectionBytesAmountPerBlock =
         {
@@ -104,7 +104,7 @@ namespace QR_Code_Generator
 
         private static void GetGeneratingPolynomial()
         {
-            correctionBytesAmountPerBlock = m_CorrectionBytesAmountPerBlock[ServiceInformation.Version - 1];
+            correctionBytesAmountPerBlock = m_CorrectionBytesAmountPerBlock[Configuration.Version - 1];
             generatingPolynomial = new byte[correctionBytesAmountPerBlock];
             byte[] polynomial = generatingPolynomials[correctionBytesAmountPerBlock];
             Array.Copy(polynomial, generatingPolynomial, correctionBytesAmountPerBlock);
@@ -132,14 +132,13 @@ namespace QR_Code_Generator
 
                     if (a == 0) continue;
 
-                    byte[] polynomial = new byte[correctionBytesAmountPerBlock]; // Copying is expensive, remake
-                    Array.Copy(generatingPolynomial, polynomial, generatingPolynomial.Length);
+                    byte[] polynomial = new byte[correctionBytesAmountPerBlock];
 
                     byte b = (byte)reverseGaloisField[a];
 
                     for (int j = 0; j < correctionBytesAmountPerBlock; ++j)
                     {
-                        polynomial[j] = (byte)((polynomial[j] + b) % 255);
+                        polynomial[j] = (byte)((generatingPolynomial[j] + b) % 255);
                         polynomial[j] = (byte)(galoisField[polynomial[j]]);
                         correctionBytes[j] = (byte)(correctionBytes[j] ^ polynomial[j]);
                     }
