@@ -13,13 +13,13 @@ namespace QR_Code_Generator
            values that correspond to them.
            It's definetely woule be more effiecient to replace this values with their binary representation to
            avoid having to convert them every time, but i'm lazy. Perhaps in the future. */
-        private static readonly SortedDictionary<char, byte> alphaNumericTable = 
+        private static readonly SortedDictionary<char, byte> _alphaNumericTable = 
             new SortedDictionary<char, byte>()
         {
             { '0', 0 }, { '1', 1 }, { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 },
             { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'A', 10 }, { 'B', 11 }, { 'C', 12 }, { 'D', 13 },
             { 'E', 14 }, { 'F', 15 }, { 'G', 16 }, { 'H', 17 }, { 'I', 18 }, { 'J', 19 },
-            { 'K', 20 },{ 'L', 21 }, { 'M', 22 }, { 'N', 23 }, { 'O', 24 }, { 'P', 25 },
+            { 'K', 20 }, { 'L', 21 }, { 'M', 22 }, { 'N', 23 }, { 'O', 24 }, { 'P', 25 },
             { 'Q', 26 }, { 'R', 27 }, { 'S', 28 }, { 'T', 29 }, { 'U', 30 }, { 'V', 31 },
             { 'W', 32 }, { 'X', 33 }, { 'Y', 34 }, { 'Z', 35 }, { ' ', 36 }, { '$', 37 },
             { '%', 38 }, { '*', 39 }, { '+', 40 }, { '-', 41 }, { '.', 42 }, { '/', 43 },
@@ -72,8 +72,8 @@ namespace QR_Code_Generator
             for (int i = 0; i < data.Length - data.Length % 2; i += 2)
             {
                 // Getting corresponding values from the table
-                byte firstDigit = alphaNumericTable[data[i]];
-                byte secondDigit = alphaNumericTable[data[i + 1]];
+                byte firstDigit = _alphaNumericTable[data[i]];
+                byte secondDigit = _alphaNumericTable[data[i + 1]];
 
                 /* Here we calculate the value using the following rule:
                    value = firstDigit * 45 + secondDigit,
@@ -87,7 +87,7 @@ namespace QR_Code_Generator
                6 bits */
             if (data.Length % 2 != 0)
             {
-                byte digit = alphaNumericTable[data[^1]];
+                int digit = _alphaNumericTable[data[^1]];
                 string binaryValue = Convert.ToString(digit, 2).PadLeft(6, '0');
                 sequenceBuidler.Append(binaryValue);
             }
@@ -112,30 +112,35 @@ namespace QR_Code_Generator
             return sequenceBuilder.ToString();
         }
 
-        // This method is used to encode a given data into a sequence of bits 
-        public static string Encode(string data)
+        /// <summary>
+        /// This method is used to encode a given data into a sequence of bits.
+        /// </summary>
+        /// <param name="data">The data to be encoded</param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="NotImplementedException"></exception>
+        public static void Encode(string data)
         {
             if (data.Length == 0) //// Will be changed
             {
                 throw new ArgumentException("Unable to encode an empty string, please try again.");
             }
 
-            string bitSequence = "";
+            string bitSequence;
 
             // Based on the chosen encoding type, we encode the data into a sequence of bits
-            switch (Configuration.EncodingType)
+            switch (Configuration.EncodingMethod)
             {
-                case EncodingType.Digital: 
+                case EncodingMethod.Numeric: 
                 {
                     bitSequence = EncodeUsingDigitalEncoding(data);
                     break; 
                 }
-                case EncodingType.Alphanumeric: 
+                case EncodingMethod.Alphanumeric: 
                 {
                     bitSequence = EncodeUsingAlphanumericEncoding(data); 
                     break;
                 }
-                case EncodingType.Byte:
+                case EncodingMethod.Binary:
                 {
                     bitSequence = EncodeUsingByteEncoding(data);
                     break; 
@@ -146,7 +151,7 @@ namespace QR_Code_Generator
                 }
             }
 
-            return bitSequence;
+            Configuration.BitSequence = bitSequence;
         }
     }
 }
