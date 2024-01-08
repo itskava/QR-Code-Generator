@@ -58,7 +58,6 @@ namespace QR_Code_Generator
         /// <summary>
         /// This method is used to add service information to the original bit sequence
         /// </summary>
-        /// <param name="bitSequence">The original bit sequence</param>
         public static void AddServiceInformation()
         {
             GetServiceData();

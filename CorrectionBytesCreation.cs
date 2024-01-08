@@ -7,9 +7,25 @@ using System.Text;
 
 namespace QR_Code_Generator
 {
+    /// <summary>
+    /// This class is responsible for creating correction bytes for each block of data.
+    /// The algorithm is based on the Reed-Solomon algorithm 
+    /// </summary>
     internal static class CorrectionBytesCreation
     {
-        private static readonly byte[] m_CorrectionBytesAmountPerBlock =
+        /* The next 4 arrays represent the amount of correction bytes that will be created for 
+           each block of data depending on the correction level.
+           This array corresponds to the L correction level */           
+        private static readonly byte[] _lCorrectionBytesAmountPerBlock = 
+        {
+            7, 10, 15, 20, 26, 18, 20, 24, 30, 18,
+            20, 24, 26, 30, 22, 24, 28, 30, 28, 28,
+            28, 28, 30, 30, 26, 28, 30, 30, 30, 30,
+            30, 30, 30, 30, 30, 30, 30, 30, 30, 30
+        };
+
+        // This array corresponds to the M correction level
+        private static readonly byte[] _mCorrectionBytesAmountPerBlock =
         {
             10, 16, 26, 18, 24, 16, 18, 22, 22, 26,
             30, 22, 22, 24, 24, 28, 28, 26, 26, 26,
@@ -17,8 +33,28 @@ namespace QR_Code_Generator
             28, 28, 28, 28, 28, 28, 28, 28, 28, 28
         };
 
-        private static byte correctionBytesAmountPerBlock;
+        // This array corresponds to the Q correction level
+        private static readonly byte[] _qCorrectionBytesAmountPerBlock =
+        {
+            13, 22, 18, 26, 18, 24, 18, 22, 20, 24,
+            28, 26, 24, 20, 30, 24, 28, 28, 26, 30,
+            28, 30, 30, 30, 30, 28, 30, 30, 30, 30,
+            30, 30, 30, 30, 30, 30, 30, 30, 30, 30
+        };
 
+        // This array corresponds to the H correction level
+        private static readonly byte[] _hCorrectionBytesAmountPerBlock =
+        {
+            17, 28, 22, 16, 22, 28, 26, 26, 24, 28,
+            24, 28, 22, 24, 24, 30, 28, 28, 26, 28,
+            30, 24, 30, 30, 30, 30, 30, 30, 30, 30,
+            30, 30, 30, 30, 30, 30, 30, 30, 30, 30
+        };
+        
+        /* The values of this dictionary are called generating polynomials because
+         * the original method uses polynomial with the same coefficients. The key for each
+         * polynomial is the amount of correction bytes, which depends on the correction level 
+         * and version */
         private static readonly SortedDictionary<byte, byte[]> generatingPolynomials = new()
         {
             {7, new byte[] { 87, 229, 146, 149, 238, 102, 21 } },
@@ -56,9 +92,12 @@ namespace QR_Code_Generator
             {30, new byte[] { 41, 173, 145, 152, 216, 31, 179, 182, 50, 48, 110,
                 86, 239, 96, 222, 125, 42, 173, 226, 193, 224, 130, 156, 37, 251, 216, 238, 40, 192, 180 } }
         };
+        
+        private static byte correctionBytesAmountPerBlock; // The amount of correction bytes for each block of data
 
-        private static byte[] generatingPolynomial;
+        private static byte[] generatingPolynomial;  // The polynomial that will be used to create correction bytes
 
+        // The values for Galois field of length 256
         private static readonly byte[] galoisField =
         {
             1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 19, 38,
@@ -79,6 +118,7 @@ namespace QR_Code_Generator
             44, 88, 176, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 1
         };
 
+        // The reverse Galois field
         private static readonly byte?[] reverseGaloisField =
         {
             null, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75,
@@ -98,24 +138,58 @@ namespace QR_Code_Generator
             203, 89, 95, 176, 156, 169, 160, 81, 11, 245, 22, 235, 122, 117, 44, 215,
             79, 174, 213, 233, 230, 231, 173, 232, 116, 214, 244, 234, 168, 80, 88, 175
         };
-        public static byte[][] CorrectionBlocks { get; private set; }
 
-        private static short correctionBytesIndex;
+        public static string[] CorrectionBlocks { get; private set; }   // The property that contains correction blocks
+        
+        private static short correctionBytesIndex; // This field is used as index for CorrectionBlocks property
 
+        // This method is used to get the generating polynomial for creating correction blocks
         private static void GetGeneratingPolynomial()
         {
-            correctionBytesAmountPerBlock = m_CorrectionBytesAmountPerBlock[Configuration.Version - 1];
+            // Based on the correction level and version, we get the amount of correction bytes
+            switch (Configuration.CorrectionLevel)
+            {
+                case CorrectionLevel.L: 
+                { 
+                    correctionBytesAmountPerBlock = _lCorrectionBytesAmountPerBlock[Configuration.Version - 1];
+                    break;
+                }
+                case CorrectionLevel.M:
+                {
+                    correctionBytesAmountPerBlock = _mCorrectionBytesAmountPerBlock[Configuration.Version - 1];
+                    break;
+                }
+                case CorrectionLevel.Q:
+                {
+                    correctionBytesAmountPerBlock = _qCorrectionBytesAmountPerBlock[Configuration.Version - 1];
+                    break;
+                }
+                case CorrectionLevel.H:
+                {
+                    correctionBytesAmountPerBlock = _hCorrectionBytesAmountPerBlock[Configuration.Version - 1];
+                    break;
+                }
+                default:
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
             generatingPolynomial = new byte[correctionBytesAmountPerBlock];
             byte[] polynomial = generatingPolynomials[correctionBytesAmountPerBlock];
             Array.Copy(polynomial, generatingPolynomial, correctionBytesAmountPerBlock);
         }
-
+        
+        /// <summary>
+        /// This method is used to generate correction bytes for each block of data
+        /// </summary>
         public static void CreateCorrectionBytes()
         {
             GetGeneratingPolynomial();
-            CorrectionBlocks = new byte[SeparationIntoBlocks.Blocks.Length][];
+            CorrectionBlocks = new string[SeparationIntoBlocks.Blocks.Length];
             correctionBytesIndex = 0;
 
+            // Creating the correction bytes for each block of data
             foreach (string block in SeparationIntoBlocks.Blocks)
             {
                 short blockSizeInBytes = (short)(block.Length / 8);
@@ -124,6 +198,7 @@ namespace QR_Code_Generator
                 List<byte> correctionBytes = new List<byte>(length);
                 FillCorrectionBlock(correctionBytes, block);
 
+                // I have no idea what happens here, just followed the specs
                 for (int i = 0; i < blockSizeInBytes; ++i)
                 {
                     byte a = correctionBytes.ElementAt(0);
@@ -139,7 +214,7 @@ namespace QR_Code_Generator
                     for (int j = 0; j < correctionBytesAmountPerBlock; ++j)
                     {
                         polynomial[j] = (byte)((generatingPolynomial[j] + b) % 255);
-                        polynomial[j] = (byte)(galoisField[polynomial[j]]);
+                        polynomial[j] = galoisField[polynomial[j]];
                         correctionBytes[j] = (byte)(correctionBytes[j] ^ polynomial[j]);
                     }
                 }
@@ -148,6 +223,7 @@ namespace QR_Code_Generator
             }
         }
 
+        // This method is used to fill the list before creating the correction bytes
         private static void FillCorrectionBlock(List<byte> correctionBlock, string block)
         {
             int index = 0;
@@ -163,16 +239,18 @@ namespace QR_Code_Generator
             }
         }
 
+        // This method is used to add a finished block into the CorrectionBlocks
         private static void AddCorrectionBlock(List<byte> block)
         {
-            byte[] correctionBytes = new byte[correctionBytesAmountPerBlock];
+            StringBuilder correctionBlockBuilder = new StringBuilder(block.Count * 8);
 
-            for (int i = 0; i < correctionBytesAmountPerBlock; ++i)
+            for (int i = 0; i < block.Count; ++i)
             {
-                correctionBytes[i] = block[i];
+                string binaryValue = Convert.ToString(block[i], 2).PadLeft(8, '0');
+                correctionBlockBuilder.Append(binaryValue);
             }
 
-            CorrectionBlocks[correctionBytesIndex++] = correctionBytes;
+            CorrectionBlocks[correctionBytesIndex++] = correctionBlockBuilder.ToString();
         }
     }
 }
