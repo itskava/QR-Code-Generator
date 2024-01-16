@@ -8,4 +8,26 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <Folder Include="Images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Email.png" />
+    <Resource Include="Assets\Link.png" />
+    <Resource Include="Assets\Location.png" />
+    <Resource Include="Assets\Phone.png" />
+    <Resource Include="Assets\Save.png" />
+    <Resource Include="Assets\Settings.png" />
+    <Resource Include="Assets\Text.png" />
+    <Resource Include="Assets\Wifi.png" />
+	<Resource Include="Assets\CloseSettings.png" />
+    <Resource Include="Assets\Question.png" />
+    <Resource Include="Fonts\Itim-Regular.ttf" />
+  </ItemGroup>
+
 </Project>

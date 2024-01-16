@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace QR_Code_Generator
 {
@@ -23,6 +15,44 @@ namespace QR_Code_Generator
         public MainWindow()
         {
             InitializeComponent();
+
+            Configuration.EncodingMethod = EncodingMethod.Binary;
+            Configuration.CorrectionLevel = CorrectionLevel.L;
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
+            string data40 = "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";
+            string data = "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+            DataEncoding.Encode(data);
+            ServiceInformation.AddServiceInformation();
+            SeparationIntoBlocks.Separate();
+            CorrectionBytesCreation.CreateCorrectionBytes();
+            CombiningBlocks.Combine();
+            InformationPlacement.PlaceInformation();
+            QRCodeRendering.CreateQR();
+
+
+            timer.Stop();
+            Console.WriteLine($"Status: {timer.ElapsedMilliseconds} ms elapsed");
+            Console.WriteLine($"Encoding method: {Configuration.EncodingMethod}");
+            Console.WriteLine($"Correction level: {Configuration.CorrectionLevel}");
+            Console.WriteLine($"Version: {Configuration.Version}");
+        }
+
+        private void Title_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void ButtonExit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
         }
     }
 }
