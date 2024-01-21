@@ -3,7 +3,7 @@
 using System;
 using System.Text;
 
-namespace QR_Code_Generator
+namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// This class is responsible for adding a service information into a original bit sequence.
@@ -12,7 +12,7 @@ namespace QR_Code_Generator
     {
         /* The next 4 arrays represent maximum amount of bits that can be encoded in QR-code of each version
            for different correction levels. This data corresponds to the L correction level. */
-        private static readonly short[] _lMaxAmountOfInformation =
+        private static readonly short[] s_lMaxAmountOfInformation =
         {
             152, 272, 440, 640, 864, 1088, 1248, 1552, 1856, 2192,
             2592, 2960, 3424, 3688, 4184, 4712, 5176, 5768, 6360, 6888,
@@ -21,7 +21,7 @@ namespace QR_Code_Generator
         };
 
         // This data corresponds to the M correction level.
-        private static readonly short[] _mMaxAmountOfInformation =
+        private static readonly short[] s_mMaxAmountOfInformation =
         {
             128, 224, 352, 512, 688, 864, 992, 1232, 1456, 1728,
             2032, 2320, 2672, 2920, 3320, 3624, 4056, 4504, 5016, 5352,
@@ -30,7 +30,7 @@ namespace QR_Code_Generator
         };
 
         // This data corresponds to the Q correction level.
-        private static readonly short[] _qMaxAmountOfInformation = 
+        private static readonly short[] s_qMaxAmountOfInformation = 
         {
             104, 176, 272, 384, 496, 608, 704, 880, 1056, 1232,
             1440, 1648, 1952, 2088, 2360, 2600, 2936, 3176, 3560, 3880,
@@ -39,7 +39,7 @@ namespace QR_Code_Generator
         };
 
         // This data corresponds to the H correction level.
-        private static readonly short[] _hMaxAmountOfInformation =
+        private static readonly short[] s_hMaxAmountOfInformation =
         {
             72, 128, 208, 288, 368, 480, 528, 688, 800, 976,
             1120, 1264, 1440, 1576, 1784, 2024, 2264, 2504, 2728, 3080,
@@ -47,11 +47,11 @@ namespace QR_Code_Generator
             6344, 6760, 7208, 7688, 7888, 8432, 8768, 9136, 9776, 10208
         };
 
-        private static short[] _maxAmountOfInformation; // This array will reference one of 4 above depending on the correction level
+        private static short[] s_maxAmountOfInformation; // This array will reference one of 4 above depending on the correction level
 
-        private static string _encodingMethod; // This string corresponds to the encoding method
+        private static string s_encodingMethod; // This string corresponds to the encoding method
 
-        private static readonly string[] _fillingBlocks = { "11101100", "00010001" }; /* This blocks are used to fill the sequence so its length is equal to the 
+        private static readonly string[] s_fillingBlocks = { "11101100", "00010001" }; /* This blocks are used to fill the sequence so its length is equal to the 
                                                                                         maximum amount of informarion that can be stored in the QR code of 
                                                                                         the corresponding version and correction level */
 
@@ -62,33 +62,32 @@ namespace QR_Code_Generator
         {
             GetServiceData();
             string dataQuantity = GetDataQuantity(Configuration.BitSequence);
-            Configuration.BitSequence = _encodingMethod + dataQuantity + Configuration.BitSequence;
+            Configuration.BitSequence = s_encodingMethod + dataQuantity + Configuration.BitSequence;
             Configuration.Version = GetVersion(Configuration.BitSequence.Length);
             FillSequence();
         }
 
+        /// <summary>
+        /// This method is used to obtain the service data that will be inserted into the bit sequence
+        /// </summary>
         private static void GetServiceData()
         {
             switch (Configuration.EncodingMethod)
             {
                 case EncodingMethod.Numeric:
                 {
-                    _encodingMethod = "0001";
+                    s_encodingMethod = "0001";
                     break;
                 }
                 case EncodingMethod.Alphanumeric:
                 {
-                    _encodingMethod = "0010";
+                    s_encodingMethod = "0010";
                     break;
                 }
                 case EncodingMethod.Binary:
                 {
-                    _encodingMethod = "0100";
+                    s_encodingMethod = "0100";
                     break;
-                }
-                default:
-                {
-                    throw new NotSupportedException();
                 }
             }
 
@@ -96,39 +95,37 @@ namespace QR_Code_Generator
             {
                 case CorrectionLevel.L:
                 {
-                    _maxAmountOfInformation = _lMaxAmountOfInformation;
+                    s_maxAmountOfInformation = s_lMaxAmountOfInformation;
                     break;
                 }
                 case CorrectionLevel.M:
                 {
-                    _maxAmountOfInformation = _mMaxAmountOfInformation;
+                    s_maxAmountOfInformation = s_mMaxAmountOfInformation;
                     break;
                 }
                 case CorrectionLevel.Q:
                 {
-                    _maxAmountOfInformation = _qMaxAmountOfInformation;
+                    s_maxAmountOfInformation = s_qMaxAmountOfInformation;
                     break;
                 }
                 case CorrectionLevel.H:
                 {
-                    _maxAmountOfInformation = _hMaxAmountOfInformation;
+                    s_maxAmountOfInformation = s_hMaxAmountOfInformation;
                     break;
-                }
-                default:
-                { 
-                    throw new NotSupportedException(); 
                 }
             }
         }
 
+        /// <summary>
         /// This method is used to obtain the version of QR code based on the given bit sequence
+        /// </summary>
         private static int GetVersion(int bitSequenceLength) 
         {
             int version = -1;
 
-            for (int i = 0; i < _maxAmountOfInformation.Length; ++i)
+            for (int i = 0; i < s_maxAmountOfInformation.Length; ++i)
             {
-                if (bitSequenceLength <= _maxAmountOfInformation[i]) // If it is possible to store data in this number of bits
+                if (bitSequenceLength <= s_maxAmountOfInformation[i]) // If it is possible to store data in this number of bits
                 {
                     version = i + 1;
                     break;
@@ -137,25 +134,27 @@ namespace QR_Code_Generator
 
             if (version == -1) // In case if the sequence is too long
             {
-                throw new ArgumentException("Entered text is too long, cannot be encoded.");
+                throw new ArgumentException("Entered data is too long, cannot be encoded.");
             }
 
             return version;
         }
 
-        // This method is used to get the data quantity which will be inserted into the bit sequence
+        /// <summary>
+        /// This method is used to get the data quantity which will be inserted into the bit sequence
+        /// </summary>
         private static string GetDataQuantity(string bitSequence)
         {
             int version = GetVersion(bitSequence.Length);
             int dataQuantityLength = GetDataQuantityLength(version);
-            int bitSequenceLength = _encodingMethod.Length + dataQuantityLength + bitSequence.Length;
+            int bitSequenceLength = s_encodingMethod.Length + dataQuantityLength + bitSequence.Length;
 
-            if (bitSequenceLength > _maxAmountOfInformation[version - 1]) /* If the sequence's length after adding service info exceeds maximum 
+            if (bitSequenceLength > s_maxAmountOfInformation[version - 1]) /* If the sequence's length after adding service info exceeds maximum 
                                                                              amount of the selected version, version must be increased */
             {
                 if (version == 40) // In case if the sequence is too long
                 {
-                    throw new ArgumentException("Entered text is too long, cannot be encoded.");
+                    throw new ArgumentException("Entered data is too long, cannot be encoded.");
                 }
                 else
                 {
@@ -164,7 +163,7 @@ namespace QR_Code_Generator
                 }
             }
 
-            string dataQuantity;
+            string dataQuantity = string.Empty;
 
             switch (Configuration.EncodingMethod)
             {
@@ -187,16 +186,14 @@ namespace QR_Code_Generator
                     dataQuantity = Convert.ToString(bitSequence.Length / 8, 2).PadLeft(dataQuantityLength, '0');
                     break;
                 }
-                default:
-                {
-                    throw new NotSupportedException();
-                }
             }
 
             return dataQuantity;
         }
 
-        // This method is used to get the amount of bits for data quantity
+        /// <summary>
+        /// This method is used to get the amount of bits for data quantity
+        /// </summary>
         private static int GetDataQuantityLength(int version) 
         {
             int dataQuantityLength = 0;
@@ -228,13 +225,14 @@ namespace QR_Code_Generator
             return dataQuantityLength;
         }
 
-        /* This method is used to fill the sequence so its length is equal to the
-           maximum amount of informarion that can be stored in the QR code of
-           the corresponding version */
+        /// <summary>
+        /// This method is used to fill the sequence so its length is equal to the
+        /// maximum amount of informarion that can be stored in the QR code of the corresponding version
+        /// </summary>
         private static void FillSequence() 
         {
-            StringBuilder sequenceBuidler = new StringBuilder(Configuration.BitSequence,
-                _maxAmountOfInformation[Configuration.Version - 1]);
+            StringBuilder sequenceBuidler = new(Configuration.BitSequence,
+                s_maxAmountOfInformation[Configuration.Version - 1]);
 
             while (sequenceBuidler.Length % 8 != 0)
             {
@@ -245,7 +243,7 @@ namespace QR_Code_Generator
 
             while (sequenceBuidler.Length != sequenceBuidler.Capacity) // Adding filling blocks
             {
-                sequenceBuidler.Append(_fillingBlocks[fillingBlockIndex]);
+                sequenceBuidler.Append(s_fillingBlocks[fillingBlockIndex]);
                 fillingBlockIndex = 1 - fillingBlockIndex; // Switching the filling block
             }
 

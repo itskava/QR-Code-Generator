@@ -1,4 +1,4 @@
-﻿namespace QR_Code_Generator
+﻿namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// This enum represents the correction level of QR-code.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace QR_Code_Generator
+namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// A class that encodes given data into a sequence of bits.
@@ -13,8 +13,7 @@ namespace QR_Code_Generator
            values that correspond to them.
            It's definetely woule be more effiecient to replace this values with their binary representation to
            avoid having to convert them every time, but i'm lazy. Perhaps in the future. */
-        private static readonly SortedDictionary<char, byte> _alphaNumericTable = 
-            new SortedDictionary<char, byte>()
+        private static readonly SortedDictionary<char, byte> s_alphaNumericTable = new()
         {
             { '0', 0 }, { '1', 1 }, { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 },
             { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'A', 10 }, { 'B', 11 }, { 'C', 12 }, { 'D', 13 },
@@ -24,13 +23,14 @@ namespace QR_Code_Generator
             { 'W', 32 }, { 'X', 33 }, { 'Y', 34 }, { 'Z', 35 }, { ' ', 36 }, { '$', 37 },
             { '%', 38 }, { '*', 39 }, { '+', 40 }, { '-', 41 }, { '.', 42 }, { '/', 43 },
             { ':', 44 }
-        };  
+        };
 
-        /* This method is used to encode data into a sequence of bits in case of using
-           digital encoding */
+        /// <summary>
+        /// This method is used to encode data into a sequence of bits in case of using digital encoding.
+        /// </summary>
         private static string EncodeUsingDigitalEncoding(string data)
         {
-            StringBuilder sequenceBuilder = new StringBuilder();
+            StringBuilder sequenceBuilder = new();
 
             /* Iterating the data to the end excluding last 1 or 2 characters
                (if the data length isn't divisible by 3) */
@@ -61,19 +61,20 @@ namespace QR_Code_Generator
             return sequenceBuilder.ToString();
         }
 
-        /* This method is used to encode data into a sequence of bits in case of using
-           alphanumeric encoding */
+        /// <summary>
+        /// This method is used to encode data into a sequence of bits in case of using alphanumeric encoding.
+        /// </summary>
         private static string EncodeUsingAlphanumericEncoding(string data)
         {
-            StringBuilder sequenceBuidler = new StringBuilder();
+            StringBuilder sequenceBuidler = new();
 
             /* Iterating the data to the end excluding the last character
                (if the data length isn't divisible by 2) */
             for (int i = 0; i < data.Length - data.Length % 2; i += 2)
             {
                 // Getting corresponding values from the table
-                byte firstDigit = _alphaNumericTable[data[i]];
-                byte secondDigit = _alphaNumericTable[data[i + 1]];
+                byte firstDigit = s_alphaNumericTable[data[i]];
+                byte secondDigit = s_alphaNumericTable[data[i + 1]];
 
                 /* Here we calculate the value using the following rule:
                    value = firstDigit * 45 + secondDigit,
@@ -87,7 +88,7 @@ namespace QR_Code_Generator
                6 bits */
             if (data.Length % 2 != 0)
             {
-                int digit = _alphaNumericTable[data[^1]];
+                int digit = s_alphaNumericTable[data[^1]];
                 string binaryValue = Convert.ToString(digit, 2).PadLeft(6, '0');
                 sequenceBuidler.Append(binaryValue);
             }
@@ -95,12 +96,13 @@ namespace QR_Code_Generator
             return sequenceBuidler.ToString();
         }
 
-        /* This method is used to encode data into a sequence of bits in case of using
-           byte encoding */
+       /// <summary>
+       /// This method is used to encode data into a sequence of bits in case of using byte encoding
+       /// </summary>
         private static string EncodeUsingByteEncoding(string data)
         {
             byte[] utf8Codes = Encoding.UTF8.GetBytes(data); // This array contains UTF-8 codes of each inputted character
-            StringBuilder sequenceBuilder = new StringBuilder(); 
+            StringBuilder sequenceBuilder = new(); 
 
             for (int i = 0; i < utf8Codes.Length; ++i)
             {
@@ -115,17 +117,9 @@ namespace QR_Code_Generator
         /// <summary>
         /// This method is used to encode a given data into a sequence of bits.
         /// </summary>
-        /// <param name="data">The data to be encoded</param>
-        /// <exception cref="ArgumentException"></exception>
-        /// <exception cref="NotImplementedException"></exception>
         public static void Encode(string data)
         {
-            if (data.Length == 0) //// Will be changed
-            {
-                throw new ArgumentException("Unable to encode an empty string, please try again.");
-            }
-
-            string bitSequence;
+            string bitSequence = string.Empty;
 
             // Based on the chosen encoding type, we encode the data into a sequence of bits
             switch (Configuration.EncodingMethod)
@@ -144,10 +138,6 @@ namespace QR_Code_Generator
                 {
                     bitSequence = EncodeUsingByteEncoding(data);
                     break; 
-                }
-                default:
-                {
-                    throw new NotImplementedException();
                 }
             }
 

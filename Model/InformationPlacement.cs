@@ -2,16 +2,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
-namespace QR_Code_Generator
+namespace QR_Code_Generator.Model
 {
-    
+    /// <summary>
+    /// This class is used to prepare information to be placed on a QR code
+    /// </summary>
     internal static class InformationPlacement
     {
         /* This array contains the grid nodes vertically and horizontally
            where the center modules of the alignment patterns are located */
-        private static readonly byte[][] _alignmentPatternsPlacement = 
+        private static readonly byte[][] s_alignmentPatternsPlacement =
         {
             null,
             new byte[] { 18 },
@@ -40,7 +41,7 @@ namespace QR_Code_Generator
             new byte[] { 6, 32, 58, 84, 110 },
             new byte[] { 6, 30, 58, 86, 114 },
             new byte[] { 6, 34, 62, 90, 118 },
-            new byte[] { 6, 26, 50, 74, 98, 122 }, 
+            new byte[] { 6, 26, 50, 74, 98, 122 },
             new byte[] { 6, 30, 54, 78, 102, 126 },
             new byte[] { 6, 26, 52, 78, 104, 130 },
             new byte[] { 6, 30, 56, 82, 108, 134 },
@@ -56,10 +57,10 @@ namespace QR_Code_Generator
         };
 
         // This list contains the coordinates of each center of the alignment pattern 
-        private static List<byte[]> _alignmentPatternsCoords;
+        private static List<byte[]> s_alignmentPatternsCoords;
 
         // This array contains the version codes for each version starting with version 7
-        private static readonly string[] versionCodes =
+        private static readonly string[] s_versionCodes =
         {
             "000010 011110 100110",
             "010001 011100 111000",
@@ -99,7 +100,7 @@ namespace QR_Code_Generator
 
         /* The next 4 arrays contain mask codes depending on the correction level
            This array corresponds to the L correction level */
-        private static readonly string[] _lMaskCodes =
+        private static readonly string[] s_lMaskCodes =
         {
             "111011111000100",
             "111001011110011",
@@ -112,7 +113,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the M correction level
-        private static readonly string[] _mMaskCodes =
+        private static readonly string[] s_mMaskCodes =
         {
             "101010000010010",
             "101000100100101",
@@ -125,7 +126,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the Q correction level
-        private static readonly string[] _qMaskCodes =
+        private static readonly string[] s_qMaskCodes =
         {
             "011010101011111",
             "011000001101000",
@@ -138,7 +139,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the H correction level
-        private static readonly string[] _hMaskCodes =
+        private static readonly string[] s_hMaskCodes =
         {
             "001011010001001",
             "001001110111110",
@@ -150,11 +151,11 @@ namespace QR_Code_Generator
             "000100000111011"
         };
 
-        // This variable contains the size of the QR code in modules
-        private static short _QRSize;
+        // This property contains the size of the QR code in modules
+        public static short QRSize { get; private set; }
 
         // This property represents the QR code that will be drawn on the bitmap image
-        public static byte[][] _QRCode { get; private set; }
+        public static byte[][] QRCode { get; private set; }
 
         /// <summary>
         /// This method is used to place all the necessary information on the
@@ -164,12 +165,12 @@ namespace QR_Code_Generator
         {
             /* The smallest QR code (version 1) has a size of 21 modules. Each next one is larger
                than the previous one by 4 modules */
-            _QRSize = (short)((Configuration.Version - 1) * 4 + 21);
-            _QRCode = new byte[_QRSize][];
+            QRSize = (short)((Configuration.Version - 1) * 4 + 21);
+            QRCode = new byte[QRSize][];
 
-            for (int i = 0; i < _QRSize; ++i)
+            for (int i = 0; i < QRSize; ++i)
             {
-                _QRCode[i] = new byte[_QRSize];
+                QRCode[i] = new byte[QRSize];
             }
 
             PlaceSearchPatterns(); // Placing the search patterns
@@ -179,90 +180,97 @@ namespace QR_Code_Generator
             PlaceRemainingData(); /* Placing the remaining data
                                     (a bit sequence that was obtained by combining data and correction blocks) */
             PlaceMaskAndCorrectionLevelCodes(); // Placing the mask and correction level codes
+            AddIndent();
 
             // All the data is collected and ready to be displayed
         }
 
-        // This method is used to place the 3 search patterns on a QR code
+        /// <summary>
+        /// This method is used to place the 3 search patterns on a QR code
+        /// </summary>
         private static void PlaceSearchPatterns()
         {
             // Upper-left search pattern
             for (int i = 0; i < 7; ++i)
             {
-                for (int j = 0; j < 7; ++j) 
+                for (int j = 0; j < 7; ++j)
                 {
                     if ((i == 1 || i == 5 || j == 1 || j == 5) &&
                         (i != 0 && i != 6 && j != 0 && j != 6)) continue;
 
-                    _QRCode[i][j] = 1;
+                    QRCode[i][j] = 1;
                 }
             }
 
-            int leftBound = _QRSize - 7; // Left bound for upper-right pattern
+            int leftBound = QRSize - 7; // Left bound for upper-right pattern
 
             // Upper-right search pattern
             for (int i = 0; i < 7; ++i)
             {
-                for (int j = leftBound; j < _QRSize; ++j)
+                for (int j = leftBound; j < QRSize; ++j)
                 {
-                    if ((i == 1 || i == 5 || j == leftBound + 1 || j == _QRSize - 2) && 
-                        (i != 0 && i != 6 && j != leftBound && j != _QRSize - 1)) continue;
+                    if ((i == 1 || i == 5 || j == leftBound + 1 || j == QRSize - 2) &&
+                        (i != 0 && i != 6 && j != leftBound && j != QRSize - 1)) continue;
 
-                    _QRCode[i][j] = 1;
+                    QRCode[i][j] = 1;
                 }
             }
 
-            int upperBound = _QRSize - 7; // Upper bound for down-left pattern
+            int upperBound = QRSize - 7; // Upper bound for down-left pattern
 
             // Down-left search pattern
-            for (int i = upperBound; i < _QRSize; ++i)
+            for (int i = upperBound; i < QRSize; ++i)
             {
                 for (int j = 0; j < 7; ++j)
                 {
-                    if ((i == upperBound + 1 || i == _QRSize - 2 || j == 1 || j == 5) &&
-                        (i != upperBound && i != _QRSize - 1 && j != 0 && j != 6)) continue;
+                    if ((i == upperBound + 1 || i == QRSize - 2 || j == 1 || j == 5) &&
+                        (i != upperBound && i != QRSize - 1 && j != 0 && j != 6)) continue;
 
-                    _QRCode[i][j] = 1;
+                    QRCode[i][j] = 1;
                 }
             }
         }
 
-        // This method is used to place the sync strips on a QR code
+        /// <summary>
+        /// This method is used to place the sync strips on a QR code
+        /// </summary>
         private static void PlaceSynchronizationStrips()
         {
             // The horizontal strip starts to the right of the bottom right module of the top-left search pattern
             int horizontalStripStart = 6;
-            int horizontalStripEnd = _QRSize - 8;
+            int horizontalStripEnd = QRSize - 8;
 
             // The strip is a line of alternating modules
-            byte currentModule = 1; 
+            byte currentModule = 1;
 
             for (int i = horizontalStripStart; i < horizontalStripEnd; ++i)
             {
-                _QRCode[6][i] = currentModule;
+                QRCode[6][i] = currentModule;
                 currentModule = (byte)(1 - currentModule); // Switching the module 
             }
 
             // The vertical strip starts to the bottom of the bottom right module of the top-left search pattern
             int verticalStripStart = 8;
-            int verticalStripEnd = _QRSize - 8;
+            int verticalStripEnd = QRSize - 8;
             currentModule = 1;
 
-            for (int i =  verticalStripStart; i < verticalStripEnd; ++i)
+            for (int i = verticalStripStart; i < verticalStripEnd; ++i)
             {
-                _QRCode[i][6] = currentModule;
+                QRCode[i][6] = currentModule;
                 currentModule = (byte)(1 - currentModule); // Switching the module 
             }
         }
-        
-        // This method is used to place the alignment patterns on a QR code
+
+        /// <summary>
+        /// This method is used to place the alignment patterns on a QR code
+        /// </summary>
         private static void PlaceAlignmentPatterns()
         {
             // The smallest QR code has no alignment patterns
             if (Configuration.Version == 1) return;
 
-            _alignmentPatternsCoords = new List<byte[]>();
-            byte[] alignmentPatterns = _alignmentPatternsPlacement[Configuration.Version - 1];
+            s_alignmentPatternsCoords = new();
+            byte[] alignmentPatterns = s_alignmentPatternsPlacement[Configuration.Version - 1];
 
             for (int i = 0; i < alignmentPatterns.Length; ++i)
             {
@@ -283,12 +291,14 @@ namespace QR_Code_Generator
                     // Once we get the center point of the current pattern, we have to render its borders
                     FillAlignmentPattern(centerPointI, centerPointJ);
                     // Saving the center point of the pattern in the list
-                    _alignmentPatternsCoords.Add(new byte[2] { alignmentPatterns[i], alignmentPatterns[j] });
+                    s_alignmentPatternsCoords.Add(new byte[2] { alignmentPatterns[i], alignmentPatterns[j] });
                 }
             }
         }
 
-        // This method is used to place the borders of the alignment pattern on a QR code
+        /// <summary>
+        /// This method is used to place the borders of the alignment pattern on a QR code
+        /// </summary>
         private static void FillAlignmentPattern(int centerPointI, int centerPointJ)
         {
             // Getting the borders for the alignment pattern
@@ -304,53 +314,56 @@ namespace QR_Code_Generator
                     // Placing modules on the borders of the pattern
                     if (i == topBorder || i == bottomBorder - 1 || j == leftBorder || j == rightBorder - 1)
                     {
-                        _QRCode[i][j] = 1;
+                        QRCode[i][j] = 1;
                     }
                 }
             }
 
-            _QRCode[centerPointI][centerPointJ] = 1; // Placing the center module of a pattern
+            QRCode[centerPointI][centerPointJ] = 1; // Placing the center module of a pattern
         }
 
-        // This method is used to place the version code on a QR code
+        /// <summary>
+        /// This method is used to place the version code on a QR code
+        /// </summary>
         private static void PlaceVersionCode()
         {
             // If the version is lower than 7, we don't put the version code
             if (Configuration.Version < 7) return;
 
-            string code = versionCodes[Configuration.Version - 7];
+            string code = s_versionCodes[Configuration.Version - 7];
             string[] parts = code.Split(' ');
 
-            for (int i = 0;  i < 3; ++i)
+            for (int i = 0; i < 3; ++i)
             {
-                int jPos = _QRSize - 11 + i;
+                int jPos = QRSize - 11 + i;
 
                 for (int j = 0; j < 6; ++j)
                 {
-                    if (parts[i][j] == '1') 
+                    if (parts[i][j] == '1')
                     {
                         /* Because the version code is duplicated in 2 places mirrored,
                          * we simply swap out the coordinates */
-                        _QRCode[j][jPos] = 1;
-                        _QRCode[jPos][j] = 1;
+                        QRCode[j][jPos] = 1;
+                        QRCode[jPos][j] = 1;
                     }
                 }
             }
         }
 
-        // This method is used to place mask and correction level codes on a QR code
+        /// <summary>
+        /// This method is used to place mask and correction level codes on a QR code
+        /// </summary>
         private static void PlaceMaskAndCorrectionLevelCodes()
         {
-            string[] maskCode;
-            
+            string[] maskCode = null;
+
             // Mask code depends on the correction level
             switch (Configuration.CorrectionLevel)
             {
-                case CorrectionLevel.L: { maskCode = _lMaskCodes; break; }
-                case CorrectionLevel.M: { maskCode = _mMaskCodes; break; }
-                case CorrectionLevel.Q: { maskCode = _qMaskCodes; break; }
-                case CorrectionLevel.H: { maskCode = _hMaskCodes; break; }
-                default: { throw new NotSupportedException(); }
+                case CorrectionLevel.L: { maskCode = s_lMaskCodes; break; }
+                case CorrectionLevel.M: { maskCode = s_mMaskCodes; break; }
+                case CorrectionLevel.Q: { maskCode = s_qMaskCodes; break; }
+                case CorrectionLevel.H: { maskCode = s_hMaskCodes; break; }
             }
 
             string mask = maskCode[0]; // DEFAULT
@@ -358,44 +371,46 @@ namespace QR_Code_Generator
             for (int i = 0; i < 6; ++i)
             {
                 byte bit = (byte)(mask[i] == '1' ? 1 : 0);
-                _QRCode[8][i] = bit;
+                QRCode[8][i] = bit;
             }
 
-            _QRCode[8][7] = (byte)(mask[6] == '1' ? 1 : 0);
-            _QRCode[8][8] = (byte)(mask[7] == '1' ? 1 : 0);
-            _QRCode[7][8] = (byte)(mask[8] == '1' ? 1 : 0);
+            QRCode[8][7] = (byte)(mask[6] == '1' ? 1 : 0);
+            QRCode[8][8] = (byte)(mask[7] == '1' ? 1 : 0);
+            QRCode[7][8] = (byte)(mask[8] == '1' ? 1 : 0);
 
-            for (int i = 0; i < 6; ++i) 
+            for (int i = 0; i < 6; ++i)
             {
                 byte bit = (byte)(mask[i + 9] == '1' ? 1 : 0);
-                _QRCode[5 - i][8] = bit;
+                QRCode[5 - i][8] = bit;
             }
 
             for (int i = 0; i < 7; ++i)
             {
                 byte bit = (byte)(mask[i] == '1' ? 1 : 0);
-                _QRCode[_QRSize - 1 - i][8] = bit;
+                QRCode[QRSize - 1 - i][8] = bit;
             }
 
-            _QRCode[_QRSize - 8][8] = 1; // This module is always black
+            QRCode[QRSize - 8][8] = 1; // This module is always black
 
             for (int i = 0; i < 8; ++i)
             {
                 byte bit = (byte)(mask[i + 7] == '1' ? 1 : 0);
-                _QRCode[8][_QRSize - 8 + i] = bit;
+                QRCode[8][QRSize - 8 + i] = bit;
             }
 
         }
 
-        // This method is used to place a bit sequence on a QR code
+        /// <summary>
+        /// This method is used to place a bit sequence on a QR code
+        /// </summary>
         private static void PlaceRemainingData()
         {
             int dataLength = Configuration.BitSequence.Length;
 
-            int iPos = _QRSize - 1; // Starting from the bottom-right 
-            int jPos = _QRSize - 1;
+            int iPos = QRSize - 1; // Starting from the bottom-right 
+            int jPos = QRSize - 1;
             bool direction = true; // The direction of module placement. true - up, false - down
-           
+
             for (int i = 0; i < dataLength; ++i)
             {
                 byte bitToPlace = Convert.ToByte(Configuration.BitSequence[i] - 48);
@@ -410,9 +425,9 @@ namespace QR_Code_Generator
                    If the current module belongs to one of these, this module is skipped */
                 if (!(IsAlignmentPattern(iPos, jPos) ||
                     IsSynchronizationStrip(iPos, jPos) ||
-                    IsVersionCode(iPos, jPos))) 
+                    IsVersionCode(iPos, jPos)))
                 {
-                    _QRCode[iPos][jPos] = bitToPlace; // If this module is free, we place there a bit of data
+                    QRCode[iPos][jPos] = bitToPlace; // If this module is free, we place there a bit of data
                 }
                 else
                 {
@@ -423,9 +438,9 @@ namespace QR_Code_Generator
                 if (IsEndOfTheColumn(iPos, jPos, direction))
                 {
                     // If we reached the end of the column that adjacent to the lower left search pattern
-                    if (iPos == _QRSize - 1 && jPos == 9)
+                    if (iPos == QRSize - 1 && jPos == 9)
                     {
-                        iPos = _QRSize - 9;
+                        iPos = QRSize - 9;
                         jPos = 8;
                     }
                     else if (jPos == 7) jPos -= 2; // If we reached the vertical sync strip, it should be skipped
@@ -436,7 +451,7 @@ namespace QR_Code_Generator
                 else
                 {
                     if (direction)
-                    {   
+                    {
                         // If we haven't reached the vertical sync strip
                         if (jPos > 6)
                         {
@@ -481,17 +496,19 @@ namespace QR_Code_Generator
                 }
                 /* In case if we've reached the last module on which it is possible to place a data bit,
                    we break out of the cycle */
-                if (iPos == _QRSize - 9 && jPos == 0) break;
-                
+                if (iPos == QRSize - 9 && jPos == 0) break;
+
             }
         }
 
-        // This method is used to determine if a module belongs to an alignment pattern
+        /// <summary>
+        /// This method is used to determine if a module belongs to an alignment pattern
+        /// </summary>
         private static bool IsAlignmentPattern(int row, int column)
         {
             if (Configuration.Version == 1) return false;
 
-            foreach (byte[] center in _alignmentPatternsCoords)
+            foreach (byte[] center in s_alignmentPatternsCoords)
             {
                 byte iCenter = center[0];
                 byte jCenter = center[1];
@@ -503,42 +520,48 @@ namespace QR_Code_Generator
             return false;
         }
 
-        // This method is used to determine if a module belongs to a synchronization strip
+        /// <summary>
+        /// This method is used to determine if a module belongs to a synchronization strip
+        /// </summary>
         private static bool IsSynchronizationStrip(int row, int column) => (row == 6) || (column == 6);
 
-        // This method is used to determine if a module belongs to a version code
+        /// <summary>
+        /// This method is used to determine if a module belongs to a version code
+        /// </summary>
         private static bool IsVersionCode(int row, int column)
         {
             // If the version is lower than 7, there is no version code on a QR code
             if (Configuration.Version < 7) return false;
 
             // If the module is on the code to the left of the top-right search pattern
-            if (Math.Abs(column - (_QRSize - 10)) <= 1 && 0 <= row && row <= 5) return true;
+            if (Math.Abs(column - (QRSize - 10)) <= 1 && 0 <= row && row <= 5) return true;
 
             // If the module is on the code at the top of the bottom-left search pattern
-            else if (0 <= column && column <= 5 && Math.Abs(row - (_QRSize - 10) ) <= 1) return true;
+            else if (0 <= column && column <= 5 && Math.Abs(row - (QRSize - 10)) <= 1) return true;
             else return false;
         }
 
-        // This method is used to determine if we reached the end of the current column
+        /// <summary>
+        /// This method is used to determine if we reached the end of the current column
+        /// </summary>
         private static bool IsEndOfTheColumn(int row, int column, bool direction)
         {
             if (direction) // If we go up
             {
-                if (row == 9 && (column <= 8 || column >= _QRSize - 8) || row == 0)
+                if (row == 9 && (column <= 8 || column >= QRSize - 8) || row == 0)
                 {
                     if (column > 6 && column % 2 != 0) return true;
                     else if (column > 6 && column % 2 == 0) return false;
                     else if (column < 6 && column % 2 == 0) return true;
                     else return false;
                 }
-               
+
                 else return false;
             }
             else // If we go down
             {
-                
-                if (row == _QRSize - 9 && column <= 8 || row == _QRSize - 1)
+
+                if (row == QRSize - 9 && column <= 8 || row == QRSize - 1)
                 {
                     if (column > 6 && column % 2 != 0) return true;
                     else if (column > 6 && column % 2 == 0) return false;
@@ -548,10 +571,34 @@ namespace QR_Code_Generator
                 else return false;
             }
         }
-
+        
+        // TODO 
         private static byte ApplyMask(int row, int column)
         {
             return (byte)((column + row) % 2);
+        }
+
+        /// <summary>
+        /// This method is used to add an 4-module indent to a QR code
+        /// </summary>
+        private static void AddIndent()
+        {
+            byte[][] qrCodeWithIndent = new byte[QRSize + 8][];
+
+            for (int i = 0; i < QRSize + 8; ++i)
+            {
+                qrCodeWithIndent[i] = new byte[QRSize + 8];
+            }
+
+            for (int i = 4; i < QRSize + 4; ++i)
+            {
+                for (int j = 4; j < QRSize + 4; ++j)
+                {
+                    qrCodeWithIndent[i][j] = QRCode[i - 4][j - 4];
+                }
+            }
+
+            QRCode = qrCodeWithIndent;
         }
     }
 }

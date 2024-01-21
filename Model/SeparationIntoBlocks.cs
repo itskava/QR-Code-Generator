@@ -1,9 +1,6 @@
 ﻿#nullable disable
 
-using Microsoft.VisualBasic;
-using System;
-
-namespace QR_Code_Generator
+namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// This class is resposible for dividing a given bit sequence into blocks.
@@ -12,7 +9,7 @@ namespace QR_Code_Generator
     {
         /* The next 4 arrays represent the number of blocks into which the bit sequence will be split depending
            on the version and correction level of the QR code. This array corresponds to the L correction level */
-        private static readonly byte[] _lBlocksQuantities =
+        private static readonly byte[] s_lBlocksQuantities =
         {
             1, 1, 1, 1, 1, 2, 2, 2, 2, 4,
             4, 4, 4, 4, 6, 6, 6, 6, 7, 8,
@@ -21,7 +18,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the M correction level        
-        private static readonly byte[] _mBlocksQuantities =
+        private static readonly byte[] s_mBlocksQuantities =
         {
             1, 1, 1, 2, 2, 4, 4, 4, 5, 5,
             5, 8, 9, 9, 10, 10, 11, 13, 14, 16,
@@ -30,7 +27,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the Q correction level
-        private static readonly byte[] _qBlocksQuantities =
+        private static readonly byte[] s_qBlocksQuantities =
         {
             1, 1, 2, 2, 4, 4, 6, 6, 8, 8,
             8, 10, 12, 16, 12, 17, 16, 18, 21, 20,
@@ -39,7 +36,7 @@ namespace QR_Code_Generator
         };
 
         // This array corresponds to the H correction level
-        private static readonly byte[] _hBlocksQuantities =
+        private static readonly byte[] s_hBlocksQuantities =
         {
             1, 1, 2, 4, 4, 4, 5, 6, 8, 8,
             11, 11, 16, 16, 18, 16, 19, 21, 25, 25,
@@ -47,11 +44,11 @@ namespace QR_Code_Generator
             51, 54, 57, 60, 63, 66, 70, 74, 77, 81
         };
 
-        private static short _blockSizeInBytes; // The size of the one block in bytes
+        private static short s_blockSizeInBytes; // The size of the one block in bytes
 
-        private static short _blocksQuantity; // The amount of block into which the bit sequence will be split
+        private static short s_blocksQuantity; // The amount of block into which the bit sequence will be split
 
-        private static short _remainder; /* The remainder shows the number of blocks that will have increased size.
+        private static short s_remainder; /* The remainder shows the number of blocks that will have increased size.
                                           * For example, if we have the sequence of size 193 bytes (1544 bits,
                                           * with the correction level M - this is 9 version), the number of blocks is
                                           * 5, then the block size is 38, the _remainder is 3. This means that blocks will
@@ -60,24 +57,25 @@ namespace QR_Code_Generator
 
         public static string[] Blocks { get; private set; } // A property that represents this blocks
 
-        /* This method is used to get the data from a given sequence that will be used
-           to separate it into the blocks */
+        /// <summary>
+        /// This method is used to get the data from a given sequence that will be used
+        /// to separate it into the blocks
+        /// </summary>
         private static void GetSequenceData()
         {
             short byteQuantity = (short)(Configuration.BitSequence.Length / 8);
 
             switch (Configuration.CorrectionLevel)
             {
-                case CorrectionLevel.L: { _blocksQuantity = _lBlocksQuantities[Configuration.Version - 1]; break; }
-                case CorrectionLevel.M: { _blocksQuantity = _mBlocksQuantities[Configuration.Version - 1]; break; }
-                case CorrectionLevel.Q: { _blocksQuantity = _qBlocksQuantities[Configuration.Version - 1]; break; }
-                case CorrectionLevel.H: { _blocksQuantity = _hBlocksQuantities[Configuration.Version - 1]; break; }
-                default: { throw new NotSupportedException(); }
+                case CorrectionLevel.L: { s_blocksQuantity = s_lBlocksQuantities[Configuration.Version - 1]; break; }
+                case CorrectionLevel.M: { s_blocksQuantity = s_mBlocksQuantities[Configuration.Version - 1]; break; }
+                case CorrectionLevel.Q: { s_blocksQuantity = s_qBlocksQuantities[Configuration.Version - 1]; break; }
+                case CorrectionLevel.H: { s_blocksQuantity = s_hBlocksQuantities[Configuration.Version - 1]; break; }
             }
             
-            _blockSizeInBytes = (short)(byteQuantity / _blocksQuantity);
-            _remainder = (short)(byteQuantity % _blocksQuantity);
-            Blocks = new string[_blocksQuantity];
+            s_blockSizeInBytes = (short)(byteQuantity / s_blocksQuantity);
+            s_remainder = (short)(byteQuantity % s_blocksQuantity);
+            Blocks = new string[s_blocksQuantity];
         }
 
         /// <summary>
@@ -86,18 +84,19 @@ namespace QR_Code_Generator
         public static void Separate()
         {
             GetSequenceData();
-            for (int i = 0; i < _blocksQuantity - _remainder; ++i)
+
+            for (int i = 0; i < s_blocksQuantity - s_remainder; ++i)
             {
-                int leftIndex = i * _blockSizeInBytes * 8;
-                int rightIndex = (i + 1) * _blockSizeInBytes * 8;
+                int leftIndex = i * s_blockSizeInBytes * 8;
+                int rightIndex = (i + 1) * s_blockSizeInBytes * 8;
                 Blocks[i] = Configuration.BitSequence[leftIndex..rightIndex];
             }
 
-            _blockSizeInBytes++;
-            for (int i = 1; i <= _remainder; ++i)
+            s_blockSizeInBytes++;
+            for (int i = 1; i <= s_remainder; ++i)
             {
-                int rightIndex = Configuration.BitSequence.Length - (i - 1) * _blockSizeInBytes * 8;
-                int leftIndex = Configuration.BitSequence.Length - i * _blockSizeInBytes * 8;
+                int rightIndex = Configuration.BitSequence.Length - (i - 1) * s_blockSizeInBytes * 8;
+                int leftIndex = Configuration.BitSequence.Length - i * s_blockSizeInBytes * 8;
                 Blocks[^i] = Configuration.BitSequence[leftIndex..rightIndex];
             }
         }

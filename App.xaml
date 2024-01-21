@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:QR_Code_Generator"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        
     </Application.Resources>
 </Application>

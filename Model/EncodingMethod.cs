@@ -1,4 +1,4 @@
-﻿namespace QR_Code_Generator
+﻿namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// The enum that represents the chosen encoding type.

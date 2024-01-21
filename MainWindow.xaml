@@ -4,8 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:QR_Code_Generator"
+        xmlns:viewmodel="clr-namespace:QR_Code_Generator.ViewModel"
+        d:DataContext="{d:DesignInstance Type=viewmodel:MainWindowViewModel}"
         mc:Ignorable="d"
-        Title="MainWindow" 
+        Title="QR maker"
+        Icon="Assets/AppIcon.png"
         Width="1200"
         Height="600" 
         ResizeMode="NoResize"
@@ -16,9 +19,8 @@
 
     <Window.Template>
         <ControlTemplate TargetType="Window">
-            <Border
-                CornerRadius="25 0 25 25"
-                Background="#E0E0C4">
+            <Border CornerRadius="25 0 25 25"
+                    Background="#E0E0C4">
                 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -29,48 +31,55 @@
                             HorizontalAlignment="Center" 
                             VerticalAlignment="Top"
                             Background="#B5AD83"
-                            CornerRadius="25 0 0 0 "
-                            MouseLeftButtonDown="Title_MouseLeftButtonDown">
+                            CornerRadius="25 0 0 0"
+                            MouseDown="Title_MouseLeftButtonDown">
                     </Border>
-                        
+
                     <Border Grid.Row="1">
                         <AdornerDecorator>
                             <ContentPresenter />
                         </AdornerDecorator>
                     </Border>
-                    <ResizeGrip Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                            Visibility="Collapsed" IsTabStop="False" />
                 </Grid>
             </Border>
         </ControlTemplate>
     </Window.Template>
     
     <Window.Resources>
+        <!-- Fonts -->
         <FontFamily x:Key="Itim">pack://application:,,,/Fonts/#Itim</FontFamily>
         
+        <!-- Color brushes -->
         <SolidColorBrush x:Key="MainColor" Color="#E0E0C4"></SolidColorBrush>
         <SolidColorBrush x:Key="SecondaryColor" Color="#B5AD83"></SolidColorBrush>
         <SolidColorBrush x:Key="TextColor" Color="#F6F6EB"></SolidColorBrush>
         <SolidColorBrush x:Key="BorderColor" Color="#9E8155"></SolidColorBrush>
         <SolidColorBrush x:Key="NotEnabledColor" Color="#EEEEEE"></SolidColorBrush>
+        <SolidColorBrush x:Key="UserTextColor" Color="#CC000000"></SolidColorBrush>
+        <SolidColorBrush x:Key="MouseOverColor" Color="#B0A980"></SolidColorBrush>
+        <SolidColorBrush x:Key="MousePressedColor" Color="#ABA475"></SolidColorBrush>
         
+        <!-- Effets -->
+        <DropShadowEffect x:Key="Shadow" ShadowDepth="1" BlurRadius="3" Opacity="0.4"></DropShadowEffect>
+        
+        <!-- Styles -->
+        
+        <!-- Label style -->
         <Style TargetType="Label">
-            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontSize" Value="24"></Setter>
             <Setter Property="FontFamily" Value="{StaticResource Itim}"></Setter>
             <Setter Property="Foreground" Value="{StaticResource TextColor}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
         </Style>
         
+        <!-- Textbox style -->
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="{StaticResource MainColor}"/>
+            <Setter Property="Foreground" Value="{StaticResource UserTextColor}"></Setter>
             <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
             <Setter Property="FontSize" Value="20"></Setter>
             <Setter Property="FontFamily" Value="{StaticResource Itim}"></Setter>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.4"></DropShadowEffect>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Effect" Value="{StaticResource Shadow}"></Setter>
             <Style.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"></Setter>
@@ -78,24 +87,22 @@
             </Style.Resources>
         </Style>
 
+        <!-- Button styles-->
         <Style x:Key="ButtonStyle" TargetType="Button">
             <Setter Property="Margin" Value="10"></Setter>
             <Setter Property="FontSize" Value="24"></Setter>
             <Setter Property="FontFamily" Value="{StaticResource Itim}"></Setter>
             <Setter Property="Background" Value="{StaticResource SecondaryColor}"></Setter>
-            <Setter Property="Foreground" Value="#F6F6EB"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource TextColor}"></Setter>
             <Setter Property="VerticalContentAlignment" Value="Bottom"></Setter>
-            
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border Background="{TemplateBinding Background}"
-                                BorderBrush="#F6F6EB"
+                                BorderBrush="{StaticResource TextColor}"
                                 BorderThickness="1.5"
-                                CornerRadius="25">
-                            <Border.Effect>
-                                <DropShadowEffect ShadowDepth="1" BlurRadius="5" Opacity="0.5"></DropShadowEffect>
-                            </Border.Effect>
+                                CornerRadius="25"
+                                Effect="{StaticResource Shadow}">
                             
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -105,11 +112,11 @@
 
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#B0A980"></Setter>
+                    <Setter Property="Background" Value="{StaticResource MouseOverColor}"></Setter>
                     <Setter Property="Cursor" Value="Hand"></Setter>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#abA475"></Setter>
+                    <Setter Property="Background" Value="{StaticResource MousePressedColor}"></Setter>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -124,7 +131,6 @@
                         <Border>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -135,29 +141,31 @@
             </Style.Triggers>
         </Style>    
         
-        <Style x:Key="CustomCheckBox" TargetType="CheckBox">
+        <!-- Checkbox style -->
+        <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ToggleButton}">
                         <Grid>
-                            <Rectangle x:Name="UncheckedVisual" Width="20" Height="20" Fill="#E0E0C4" Stroke="#9E8155">
-                                <Rectangle.Effect>
-                                    <DropShadowEffect ShadowDepth="1" BlurRadius="1" Opacity="0.5"></DropShadowEffect>
-                                </Rectangle.Effect>
+                            <Rectangle x:Name="UncheckedVisual"
+                                       Width="20"
+                                       Height="20"
+                                       Fill="{StaticResource MainColor}"
+                                       Stroke="{StaticResource BorderColor}"
+                                       Effect="{StaticResource Shadow}">
                             </Rectangle>
                             <Border x:Name="CheckedVisual"
                                     Width="20"
                                     Height="20" 
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Background="#E0E0C4"
-                                    BorderBrush="#9E8155"
+                                    Background="{StaticResource MainColor}"
+                                    BorderBrush="{StaticResource BorderColor}"
                                     BorderThickness="2"
-                                    Visibility="Collapsed">
-                                <Border.Effect>
-                                    <DropShadowEffect ShadowDepth="1" BlurRadius="1" Opacity="0.5"></DropShadowEffect>
-                                </Border.Effect>
-                                <Path x:Name="CheckMark" Stroke="#9E8155" StrokeThickness="3" Visibility="Collapsed">
+                                    Visibility="Collapsed"
+                                    Effect="{StaticResource Shadow}">
+                                
+                                <Path x:Name="CheckMark" Stroke="{StaticResource BorderColor}" StrokeThickness="2.5" Visibility="Collapsed">
                                     <Path.Data>
                                         <PathGeometry Figures="M2,8 L8,13 L13,2" />
                                     </Path.Data>
@@ -180,13 +188,7 @@
             </Setter>
         </Style>
 
-        
-        <SolidColorBrush x:Key="ComboBoxNormalBorderBrush" Color="#e3e9ef" />
-        <SolidColorBrush x:Key="ComboBoxNormalBackgroundBrush" Color="#fff" />
-        <SolidColorBrush x:Key="ComboBoxDisabledForegroundBrush" Color="#888" />
-        <SolidColorBrush x:Key="ComboBoxDisabledBackgroundBrush" Color="#eee" />
-        <SolidColorBrush x:Key="ComboBoxDisabledBorderBrush" Color="#888" />
-
+        <!-- Combobox style-->
         <ControlTemplate TargetType="ToggleButton" x:Key="ComboBoxToggleButtonTemplate">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -194,12 +196,11 @@
                     <ColumnDefinition Width="20" />
                 </Grid.ColumnDefinitions>
                 <Border Grid.ColumnSpan="3" Name="Border"
-                        BorderBrush="{StaticResource BorderColor}" BorderThickness="0.5" 
+                        BorderBrush="{StaticResource BorderColor}"
+                        BorderThickness="0.5" 
                         CornerRadius="10"
-                        Background="{StaticResource MainColor}">
-                    <Border.Effect>
-                        <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.4"></DropShadowEffect>
-                    </Border.Effect>
+                        Background="{StaticResource MainColor}"
+                        Effect="{StaticResource Shadow}">
                 </Border>
 
                 <Border Name="ButtonBorder"
@@ -215,19 +216,11 @@
                       Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Center"
-                      Fill="#444" />       
+                      Fill="{StaticResource UserTextColor}" />       
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger Property="ToggleButton.IsChecked" Value="True">
                     <Setter Property="Shape.Fill" TargetName="Arrow" Value="#8D979E" />
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" TargetName="Border" Value="{StaticResource ComboBoxDisabledBackgroundBrush}"/>
-                    <Setter Property="Background" TargetName="ButtonBorder" Value="{StaticResource ComboBoxDisabledBackgroundBrush}"/>
-                    <Setter Property="BorderBrush" TargetName="ButtonBorder" Value="{StaticResource ComboBoxDisabledBorderBrush}"/>
-                    <Setter Property="Foreground" Value="{StaticResource ComboBoxDisabledForegroundBrush}"/>
-                    <Setter Property="FontSize" Value="20"></Setter>
-                    <Setter Property="Fill" TargetName="Arrow" Value="#999"/>
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -242,6 +235,7 @@
             <Setter Property="FontSize" Value="20"></Setter>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"></Setter>
             <Setter Property="Cursor" Value="Hand"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource UserTextColor}"></Setter>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -253,7 +247,7 @@
                                           IsChecked="{Binding Path=IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                           Template="{StaticResource ComboBoxToggleButtonTemplate}"/>      
 
-                            <ContentPresenter Name="ContentSite" 
+                            <ContentPresenter Name="ContentSite"
                                               Margin="15 3 23 3"
                                               IsHitTestVisible="False"
                                               HorizontalAlignment="Left" 
@@ -262,7 +256,6 @@
                                               ContentTemplate="{TemplateBinding ComboBox.SelectionBoxItemTemplate}"
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
                             <TextBox Name="PART_EditableTextBox"
-                                     
                                      Padding="10 0 0 0"
                                      IsReadOnly="{TemplateBinding IsReadOnly}"
                                      Visibility="Hidden" Background="Transparent"
@@ -271,11 +264,12 @@
                                 <TextBox.Template>
                                     <ControlTemplate TargetType="TextBox" >
                                         <Border Name="PART_ContentHost" 
-                                                Focusable="False" />
+                                                Focusable="False"/>
+                                        
                                     </ControlTemplate>
                                 </TextBox.Template>
                             </TextBox>
-                            <!-- Popup showing items -->
+                           
                             <Popup Name="Popup" Placement="Bottom"
                                        Focusable="False" 
                                        AllowsTransparency="True"
@@ -286,9 +280,8 @@
                                       MinWidth="{TemplateBinding FrameworkElement.ActualWidth}"
                                       MaxHeight="{TemplateBinding ComboBox.MaxDropDownHeight}">
                                     <Border Name="DropDownBorder"
-                                            Background="#E0E0C4"
+                                            Background="{StaticResource MainColor}"
                                             Margin="0 1 0 0"
-                                            CornerRadius="0"
                                             BorderThickness="0.5" 
                                             BorderBrush="{StaticResource BorderColor}"/>
                                     <ScrollViewer Margin="4" SnapsToDevicePixels="True">
@@ -297,27 +290,12 @@
                                 </Grid>
                             </Popup>
                         </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="ItemsControl.HasItems" Value="False">
-                                <Setter Property="FrameworkElement.MinHeight" TargetName="DropDownBorder" Value="95"/>
-                            </Trigger>
-                            <Trigger Property="UIElement.IsEnabled" Value="False">
-                                <Setter Property="TextElement.Foreground" Value="{StaticResource ComboBoxDisabledForegroundBrush}"/>
-                            </Trigger>
-                            <Trigger Property="ItemsControl.IsGrouping" Value="True">
-                                <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
-                            </Trigger>
-                            <Trigger Property="ComboBox.IsEditable" Value="True">
-                                <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
-                                <Setter Property="UIElement.Visibility" TargetName="PART_EditableTextBox" Value="Visible"/>
-                                <Setter Property="UIElement.Visibility" TargetName="ContentSite" Value="Hidden"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
         
+        <!-- TabItem style -->
         <Style TargetType="TabItem">
             <Setter Property="FontSize" Value="21"></Setter>
             <Setter Property="Template">
@@ -330,10 +308,8 @@
                                 Width="100"
                                 Height="90"
                                 CornerRadius="25"
-                                Margin="7 5">
-                            <Border.Effect>
-                                <DropShadowEffect ShadowDepth="1" BlurRadius="1" Opacity="0.5"></DropShadowEffect>
-                            </Border.Effect>
+                                Margin="7 5"
+                                Effect="{StaticResource Shadow}">
                             <ContentPresenter x:Name="ContentSite"
                                               VerticalAlignment="Center"
                                               HorizontalAlignment="Center"
@@ -354,6 +330,7 @@
             </Setter>
         </Style>
 
+        <!-- Border style -->
         <Style x:Key="TabStyle" TargetType="Border">
             <Setter Property="Width" Value="670"></Setter>
             <Setter Property="Background" Value="{StaticResource SecondaryColor}"></Setter>
@@ -361,24 +338,58 @@
             <Setter Property="BorderThickness" Value="2"></Setter>
             <Setter Property="CornerRadius" Value="25"></Setter>
             <Setter Property="Margin" Value="0 20 0 0"></Setter>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.4"></DropShadowEffect>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Effect" Value="{StaticResource Shadow}"></Setter>
         </Style>
         
+        <!-- Settings panel animations -->
         <Storyboard x:Key="SlideInSettings">
-            <DoubleAnimation Storyboard.TargetName="SettingsPanel" Storyboard.TargetProperty="RenderTransform.(TranslateTransform.X)" To="0" Duration="0:0:0.5"/>
+            <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                             Storyboard.TargetProperty="RenderTransform.(TranslateTransform.X)"
+                             To="0" 
+                             Duration="0:0:0.5"/>
         </Storyboard>
 
         <Storyboard x:Key="SlideOutSettings">
-            <DoubleAnimation Storyboard.TargetName="SettingsPanel" Storyboard.TargetProperty="RenderTransform.(TranslateTransform.X)" To="-400" Duration="0:0:0.5"/>
+            <DoubleAnimation Storyboard.TargetName="SettingsPanel"
+                             Storyboard.TargetProperty="RenderTransform.(TranslateTransform.X)" 
+                             To="-400"
+                             Duration="0:0:0.5"/>
         </Storyboard>
+
+        <!-- Image style -->
+        <Style x:Key="HelpImageStyle" TargetType="Image">
+            <Setter Property="Source" Value="Assets/Help.png"></Setter>
+            <Setter Property="Margin" Value="0 4 3 0"></Setter>
+            <Setter Property="Width" Value="30"></Setter>
+            <Setter Property="Height" Value="30"></Setter>
+            <Setter Property="VerticalAlignment" Value="Top"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Right"></Setter>
+            <Setter Property="Cursor" Value="Help"></Setter>
+        </Style>
         
+        <!-- Tooltip style -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="{StaticResource MainColor}"></Setter>
+            <Setter Property="HasDropShadow" Value="True"></Setter>
+            <Style.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="CornerRadius" Value="25"></Setter>
+                </Style>
+            </Style.Resources>
+        </Style>
+
+        <!-- Textblock style -->
+        <Style x:Key="TooltipTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource UserTextColor}"></Setter>
+            <Setter Property="FontFamily" Value="{StaticResource Itim}"></Setter>
+            <Setter Property="FontSize" Value="16"></Setter>
+            <Setter Property="Padding" Value="5"></Setter>
+        </Style>
+
     </Window.Resources>
 
-    <Window.Triggers >
+    <Window.Triggers>
+        <!-- Settings panel animation triggers -->
         <EventTrigger RoutedEvent="Button.Click" SourceName="OpenSettings">
             <EventTrigger.Actions>
                 <BeginStoryboard>
@@ -409,24 +420,25 @@
             <RowDefinition Height="40" />
             <RowDefinition />
         </Grid.RowDefinitions>
-
-        <Grid Grid.Column="0"
-              Grid.Row="0"
-              Grid.ColumnSpan="2">
-
+        
+        <!-- Menu panel with control buttons -->
+        <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
+            
+            <!-- Settings button -->
             <Button Style="{StaticResource ServiceButtonStyle}"
-                    x:Name="OpenSettings" 
+                    x:Name="OpenSettings"
                     Width="35" 
                     Height="35"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"
                     Margin="25 0 0 0">
                 <Button.Content>
-                    <Image Source="Assets/Settings.png" />
+                    <Image Source="Assets/OpenSettings.png" />
                 </Button.Content>
             </Button>
+            
+            <!-- Exit button -->
             <Button Style="{StaticResource ServiceButtonStyle}"
-                    x:Name="ButtonExit"
                     Width="50"
                     Height="40"
                     HorizontalAlignment="Right"
@@ -435,8 +447,10 @@
                     FontSize="22"
                     Cursor="Hand"
                     Content="X"
-                    Click="ButtonExit_Click">
+                    Command="{Binding ExitCommand}">
             </Button>
+            
+            <!-- Minimize button -->
             <Button Style="{StaticResource ServiceButtonStyle}"
                     Width="50"
                     Height="40"
@@ -448,61 +462,57 @@
                     FontSize="24"
                     Cursor="Hand"
                     Content="-"
-                    Click="MinimizeButton_Click">
+                    Command="{Binding MinimizeCommand}">
             </Button>
         </Grid>
         
-        <StackPanel Grid.Column="0"
-                    Grid.Row="1"
-                    VerticalAlignment="Top">
-            
+        <!-- Left part of the grid with text fields -->
+        <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Top">
             <TabControl HorizontalAlignment="Center"
+                        Margin="0 50 0 0"
                         Background="Transparent"
                         BorderBrush="Transparent"
-                        BorderThickness="0">
-                <TabItem IsSelected="True">
+                        BorderThickness="0"
+                        SelectedIndex="{Binding SelectedTabIndex}">
+                
+                <!-- Link text field -->
+                <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/Link.png"
-                                   Width="40"
-                                   Height="40">
-                            </Image>
+                            <Image Source="Assets/Link.png" Width="40" Height="40"></Image>
                             <Label>Link</Label>
                         </StackPanel>
                     </TabItem.Header>
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="160">
-
+                    
+                    <Border Style="{StaticResource TabStyle}" Height="160">
                         <StackPanel>
-                            <Label HorizontalAlignment="Left"
-                                   Margin="30 20 30 10"
-                                   Content="URL">
-                            </Label>
+                            <Label HorizontalAlignment="Left" Margin="30 20 30 10">URL</Label>
                             <TextBox Width="600"
                                      Height="40"
                                      Padding="10 0"
-                                     FontSize="24">
+                                     FontSize="24"
+                                     Text="{Binding UrlText}">
                             </TextBox>
                         </StackPanel>
                     </Border>
                 </TabItem>
+                
+                <!-- Text text field -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/Text.png"
-                                   Width="40"
-                                   Height="40">
-                            </Image>     
+                            <Image Source="Assets/Text.png" Width="40" Height="40"></Image>     
                             <Label>Text</Label>
                         </StackPanel>
                     </TabItem.Header>
                     
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="280">
+                    <Border Style="{StaticResource TabStyle}" Height="280">
                         <StackPanel>
                             <Grid Margin="30 10 30 10">
                                 <Label HorizontalAlignment="Left">Text</Label>
-                                <Label HorizontalAlignment="Right">0</Label>
+                                <Label HorizontalAlignment="Right"
+                                       Content="{Binding TextSymbolsCounter}">
+                                </Label>
                             </Grid>
                            
                             <TextBox Width="600"
@@ -511,142 +521,129 @@
                                      FontSize="24"
                                      VerticalContentAlignment="Top"
                                      TextWrapping="Wrap"
-                                     AcceptsReturn="True">
-
+                                     AcceptsReturn="True"
+                                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}">
                             </TextBox>
                         </StackPanel>
                     </Border>
                 </TabItem>
+                
+                <!-- Email text fields -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/Email.png"
-                                   Width="40"
-                                   Height="40">
-                            </Image>
+                            <Image Source="Assets/Email.png" Width="40" Height="40"></Image>
                             <Label>Email</Label>
                         </StackPanel>
                     </TabItem.Header>
 
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="285">
+                    <Border Style="{StaticResource TabStyle}" Height="285">
                         <StackPanel>
-                            <Label HorizontalAlignment="Left"
-                                   Margin="30 5 0 0">Send to</Label>
+                            <Label HorizontalAlignment="Left" Margin="30 5 0 0">Send to</Label>
                             <TextBox Width="600"
                                      Height="40"
                                      Margin="0 0 0 10"
-                                     Padding="10 0">
+                                     Padding="10 0"
+                                     Text="{Binding SendTo, UpdateSourceTrigger=PropertyChanged}">
                             </TextBox>
                             
-                            <Label HorizontalAlignment="Left"
-                                   Margin="30 0 0 0">Subject</Label>
+                            <Label HorizontalAlignment="Left" Margin="30 0 0 0">Subject</Label>
                             <TextBox Width="600"
                                      Height="40"
                                      Margin="0 0 0 10"
-                                     Padding="10 0">
+                                     Padding="10 0"
+                                     Text="{Binding Subject, UpdateSourceTrigger=PropertyChanged}">
                                 
                             </TextBox>
-                            <Label HorizontalAlignment="Left"
-                                   Margin="30 0 0 0">Text</Label>
+                            
+                            <Label HorizontalAlignment="Left" Margin="30 0 0 0">Text</Label>
                             <TextBox Width="600"
                                      Height="40"
-                                     Padding="10 0">
-                                
+                                     Padding="10 0"
+                                     Text="{Binding EmailText, UpdateSourceTrigger=PropertyChanged}">
                             </TextBox>
                         </StackPanel>
                     </Border>
                 </TabItem>
+                
+                <!-- Location text fields -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/Location.png"
-                                   Width="40"
-                                   Height="40">         
-                            </Image>
+                            <Image Source="Assets/Location.png" Width="40" Height="40"></Image>
                             <Label FontSize="21">Location</Label>
                         </StackPanel>
                     </TabItem.Header>
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="160">
+                    
+                    <Border Style="{StaticResource TabStyle}" Height="160">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <Label HorizontalAlignment="Left"
-                                       Margin="40 20 30 10"
-                                       Content="Latitude">
-                                </Label>
+                                <Label HorizontalAlignment="Left" Margin="40 20 30 10">Latitude</Label>
                                 <TextBox Width="250"
                                          Height="40"
                                          Padding="10 0 0 0"
-                                         FontSize="24">
+                                         FontSize="24"
+                                         Text="{Binding Latitude, UpdateSourceTrigger=PropertyChanged}">
                                 </TextBox>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
-                                <Label HorizontalAlignment="Left"
-                                       Margin="40 20 30 10"
-                                       Content="Longitude">
-                                </Label>
+                                <Label HorizontalAlignment="Left" Margin="40 20 30 10">Longitude</Label>
                                 <TextBox Width="250"
                                          Height="40"
                                          Padding="10 0 0 0"
-                                         FontSize="24">
+                                         FontSize="24"
+                                         Text="{Binding Longitude, UpdateSourceTrigger=PropertyChanged}">
 
                                 </TextBox>
                             </StackPanel>
                         </Grid>
                     </Border>
                 </TabItem>
+                
+                <!-- Phone number text fields -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/Phone.png"
-                                   Width="40"
-                                   Height="40">
-                            </Image>
+                            <Image Source="Assets/Phone.png" Width="40" Height="40"></Image>
                             <Label>Phone</Label>
                         </StackPanel>
                     </TabItem.Header>
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="160">
+                    
+                    <Border Style="{StaticResource TabStyle}" Height="160">
                         <StackPanel>
-                            <Label HorizontalAlignment="Left"
-                                   Margin="30 20 30 10"
-                                   Content="Phone number">
-                            </Label>
+                            <Label HorizontalAlignment="Left" Margin="30 20 30 10">Phone number</Label>
                             <TextBox Width="600"
                                      Height="40"
                                      Padding="10 0 0 0"
-                                     FontSize="24">
+                                     FontSize="24"
+                                     Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}">
                             </TextBox>
                         </StackPanel>
                     </Border>
                 </TabItem>
+                
+                <!-- Wifi text fields -->
                 <TabItem>
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
-                            <Image Source="Assets/WiFi.png"
-                                           Width="40"
-                                           Height="40">         
-                            </Image>
+                            <Image Source="Assets/WiFi.png" Width="40" Height="40"></Image>
                             <Label>WiFi</Label>
                         </StackPanel>
                     </TabItem.Header>
-                    <Border Style="{StaticResource TabStyle}"
-                            Height="230">
+                    
+                    <Border Style="{StaticResource TabStyle}" Height="230">
                        
                         <StackPanel>
-                            <Label HorizontalAlignment="Left"
-                                   Margin="35 20 30 0"
-                                   Content="Network name">
-                            </Label>
+                            <Label HorizontalAlignment="Left" Margin="35 20 30 0">Network name</Label>
                             <TextBox Width="600"
                                      Height="40"
                                      Padding="10 0 0 0"
-                                     FontSize="20">        
+                                     FontSize="20"
+                                     Text="{Binding NetworkName, UpdateSourceTrigger=PropertyChanged}">        
                             </TextBox>
                             <Grid Margin="0 10 0 0">
                                 <Grid.ColumnDefinitions>
@@ -655,25 +652,25 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <Label HorizontalAlignment="Left"
-                                           Margin="35 0 0 0">Network type</Label>
+                                    <Label HorizontalAlignment="Left" Margin="35 0 0 0">Network type</Label>
                                     <ComboBox Style="{StaticResource ComboBoxStyle}"
                                               Width="260"
                                               Height="40"
-                                              FontSize="20">
-                                        <ComboBoxItem>WEP</ComboBoxItem>
-                                        <ComboBoxItem>WPA/WPA2</ComboBoxItem>
-                                        <ComboBoxItem IsSelected="True">No encryption</ComboBoxItem>
+                                              FontSize="20"
+                                              ItemsSource="{Binding NetworkTypes}"
+                                              SelectedItem="{Binding SelectedNetworkType}">
+                                        
                                     </ComboBox>
                                 </StackPanel>
                                 
                                 <StackPanel Grid.Column="1">
-                                    <Label HorizontalAlignment="Left"
-                                           Margin="35 0 0 0">Password</Label>
+                                    <Label HorizontalAlignment="Left" Margin="35 0 0 0">Password</Label>
                                     <TextBox Width="260"
                                              Height="40"
                                              FontSize="20"
-                                             Padding="10 0 0 0"></TextBox>
+                                             Padding="10 0 0 0"
+                                             Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}">
+                                    </TextBox>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -682,53 +679,58 @@
             </TabControl>
         </StackPanel>
         
+        <!-- Right part of the grid that contains the space where the image will be placed and the generate and save buttons -->
         <StackPanel Grid.Column="1"
                     Grid.Row="1"
                     Margin="20"
                     VerticalAlignment="Bottom"
                     HorizontalAlignment="Center">
-            <Border Width="400"
-                    Height="400"
-                    Background="#B5AD83">       
-                <Image Width="400"
-                       Height="400">
-                </Image>
+            
+            <!-- Place for the QR code -->
+            <Border Width="400" Height="400" Background="{StaticResource SecondaryColor}">
+                <Image Width="395" Height="395" Source="{Binding ImageSource}"></Image>
             </Border>
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Center">
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                
+                <!-- Generation button -->
                 <Button Style="{StaticResource ButtonStyle}"
-                        x:Name="ButtonCreate"
                         Width="220"
                         Height="60"
                         Content="Create QR"
-                        VerticalContentAlignment="Center">
+                        VerticalContentAlignment="Center"
+                        Command="{Binding GenerateCommand}">
                 </Button>
+                
+                <!-- Save button -->
                 <Button Style="{StaticResource ButtonStyle}"
-                        x:Name="ButtonSave"
                         Width="60"
-                        Height="60">
+                        Height="60"
+                        Command="{Binding SaveQRCommand}">
 
-                    <Image Source="Assets/Save.png"
-                           Width="40"
-                           Height="40"
-                           Margin="0 5 0 6">
-                    </Image>
+                    <Image Source="Assets/Save.png" Width="40" Height="40" Margin="0 5 0 6"></Image>
                 </Button>
             </StackPanel>
-            
         </StackPanel>
         
+        <!-- Settings panel -->
         <Border Grid.RowSpan="2"
                 x:Name="SettingsPanel" 
-                Background="#B5AD83"
+                Background="{StaticResource SecondaryColor}"
                 Width="400"
                 HorizontalAlignment="Left"
                 CornerRadius="25">
+
+            <!-- Initial displacement of the settings panel -->
+            <Border.RenderTransform>
+                <TranslateTransform X="-400"/>
+            </Border.RenderTransform>
+            
             <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Visible"
                           PanningMode="Both"
                           CanContentScroll="True">
-                
+
                 <StackPanel>
                     <Grid>
                         <Label Width="400"
@@ -737,8 +739,15 @@
                                Foreground="{StaticResource SecondaryColor}"
                                FontSize="26"
                                Content="Settings">
-                            
+                            <Label.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="25 0 0 0"></Setter>
+                                </Style>
+                            </Label.Resources>
+
                         </Label>
+
+                        <!-- Close settings button -->
                         <Button Style="{StaticResource ServiceButtonStyle}"
                                 x:Name="CloseSettings"
                                 Width="40"
@@ -753,8 +762,8 @@
                             </Image>
                         </Button>
                     </Grid>
-                    
-                    
+
+                    <!-- Color parameters -->
                     <Grid Margin="0 25 0 0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5*"/>
@@ -763,109 +772,226 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <Label>Background</Label>
-                            <TextBox Margin="30 0"
-                                     Padding="7 3 3 3"></TextBox>
+                            <Grid>
+                                <TextBox Margin="30 0"
+                                         Padding="7 3 3 3"
+                                         Text="{Binding Background, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsBackgroundEnabled, UpdateSourceTrigger=PropertyChanged}">
+                                </TextBox>
+                                <Rectangle Width="20"
+                                           Height="20"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Fill="{Binding BackgroundShowcase}">
+                                </Rectangle>
+                            </Grid>
+
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <Label>Foreground</Label>
-                            <TextBox Margin="30 0"
-                                     Padding="7 3 3 3"></TextBox>
+                            <Grid>
+                                <TextBox Margin="30 0"
+                                         Padding="7 3 3 3"
+                                         Text="{Binding Foreground, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                                </TextBox>
+                                <Rectangle Width="20"
+                                           Height="20"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Fill="{Binding ForegroundShowcase}">
+                                </Rectangle>
+                            </Grid>
+
                         </StackPanel>
-                        
-                        <Image Grid.Column="2"
-                               Source="Assets/Question.png"
-                               VerticalAlignment="Top"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
-                            
+
+                        <Image Grid.Column="2" Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        These parameters are responsible for the color of the QR code.<LineBreak/><LineBreak/>
+                                        The 'Background' parameter changes the background color of the<LineBreak/>
+                                        image (default: white) and the 'Foreground' parameter changes<LineBreak/>
+                                        the foreground color (default: black). <LineBreak/><LineBreak/>
+                                        In case you set a 'Transparent background', the 'Background'<LineBreak/>
+                                        parameter will not be available. <LineBreak/><LineBreak/>
+                                        Colors are represented by HEX code.
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
-                    
+
+                    <!-- Transparency parameter -->
                     <StackPanel Orientation="Horizontal">
                         <Label Margin="30 0 15 0"
                                Padding="0 10"
                                Content="Transparent background">
                         </Label>
-                        <CheckBox Style="{StaticResource CustomCheckBox}"></CheckBox>
+                        <CheckBox Style="{StaticResource CheckBoxStyle}"
+                                  IsChecked="{Binding BackgroundTransparency, Mode=TwoWay}">
+                        </CheckBox>
                     </StackPanel>
 
+                    <!-- Logo parameter -->
                     <Grid>
                         <StackPanel Orientation="Horizontal">
                             <Label Margin="25 0 10 0">Logo</Label>
-                            <CheckBox Style="{StaticResource CustomCheckBox}" />
+                            <CheckBox Style="{StaticResource CheckBoxStyle}" />
                         </StackPanel>
-                        <Image Grid.Column="2"
-                               Source="Assets/Question.png"
-                               VerticalAlignment="Top"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
+                        <Image Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        This parameter is responsible for adding a logo to the center of the QR-code.<LineBreak/><LineBreak/>
+                                        There are several logos that are available by default, but you have the option<LineBreak/>
+                                        to upload you own. They must have a size {size}.<LineBreak/><LineBreak/>
+                                        In case if you decide to add a logo, you won't be able to choose the correction<LineBreak/>
+                                        level. <LineBreak/><LineBreak/>
+                                        Currently not available.
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
 
-                    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                  Height="160">
-                    </ScrollViewer>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Height="160"></ScrollViewer>
 
+                    <!-- Save path parameter -->
                     <Grid>
                         <StackPanel Orientation="Horizontal">
-                            <Label Margin="25 0 10 0">Save path</Label>
-                            <CheckBox Style="{StaticResource CustomCheckBox}" />
+                            <Label Margin="25 0 10 0">Ask path every time</Label>
+                            <CheckBox Style="{StaticResource CheckBoxStyle}"
+                                      IsChecked="{Binding IsPathAsked, Mode=TwoWay}">
+
+                            </CheckBox>
                         </StackPanel>
-                        <Image Source="Assets/Question.png"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
+                        <Image Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        This parameter is responsible for saving QR-codes.<LineBreak/><LineBreak/>
+                                        By default, QR-codes are saved to the "Images/"<LineBreak/>
+                                        folder in the root direcitory of a project, but you<LineBreak/>
+                                        can choose another folder as well. <LineBreak/><LineBreak/>
+                                        If this option is active, you will be prompted to<LineBreak/>
+                                        select the saving path each time.
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
-                    
-                    <TextBox Margin="25 5 80 0"
-                             Padding="7 3 3 3">
-                    </TextBox>
 
                     <Grid>
+                        <TextBox Margin="25 5 70 0"
+                                 Padding="7 3 3 3"
+                                 IsReadOnly="True"
+                                 Text="{Binding SavePath}">
+                        </TextBox>
+                        <Button Width="40"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right"
+                                Margin="0 5 4 0"
+                                Cursor="Hand"
+                                Effect="{StaticResource Shadow}"
+                                 Command="{Binding SelectSavePathCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="{StaticResource MainColor}"></Setter>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        BorderBrush="{StaticResource SecondaryColor}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="10"
+                                                        Effect="{StaticResource Shadow}">
+
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter Property="Background" Value="#BCB99B"></Setter>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+                            </Button.Style>
+                            <Button.Content>
+                                <Image Width="25"
+                                       Height="25"
+                                       Source="Assets/FolderSearch.png">
+                                </Image>
+                            </Button.Content>
+                        </Button>
+                    </Grid>
+
+                    <!-- Resolution parameter -->
+                    <Grid Margin="0 5 0 0">
                         <StackPanel Orientation="Horizontal"
-                                    Margin="0 10 0 0">
+                                    Margin="0 0 0 0">
                             <Label Margin="25 0 10 0">Highest resolution</Label>
-                            <CheckBox Style="{StaticResource CustomCheckBox}" />
+                            <CheckBox Style="{StaticResource CheckBoxStyle}"
+                                      IsChecked="{Binding IsHighestResolution, Mode=TwoWay}">
+                            </CheckBox>
                         </StackPanel>
-                        <Image Source="Assets/Question.png"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0 6 3 0"
-                               Width="30"
-                               Height="30">
+                        <Image Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        This parameter is responsible for the resolution of the QR-code. <LineBreak/><LineBreak/>
+                                        By default, the QR-code resolution is automatically selected depending on its size. <LineBreak/><LineBreak/>
+                                        If this parameter is active, QR-code will always be rendered with the highest<LineBreak/>
+                                        possible resolution (2048x2048).
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
 
+                    <!-- Optimization parameter -->
                     <Grid>
                         <StackPanel Orientation="Horizontal">
                             <Label Margin="25 0 10 0">Optimization</Label>
-                            <CheckBox Style="{StaticResource CustomCheckBox}" />
+                            <CheckBox Style="{StaticResource CheckBoxStyle}"
+                                      IsChecked="{Binding IsOptimized, Mode=TwoWay}">
+                            </CheckBox>
                         </StackPanel>
-                        <Image Source="Assets/Question.png"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
+                        <Image Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        This parameter is responsible for optimizating of the QR-code.<LineBreak/><LineBreak/>
+                                        Optimization is used to prevent artifacts that confuse the reading software.<LineBreak/><LineBreak/>
+                                        Can significantly affect generation time.<LineBreak/><LineBreak/>
+                                        Currently not available.
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
 
+                    <!-- Correction level parameter -->
                     <Grid>
-                        <Label Margin="25 0 0 0"
-                               HorizontalAlignment="Left">Encoding method</Label>
-                        <Image Source="Assets/Question.png"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
+                        <Label Margin="25 0 0 0" HorizontalAlignment="Left">Correction level</Label>
+                        <Image Style="{StaticResource HelpImageStyle}">
+                            <Image.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Style="{StaticResource TooltipTextStyle}">
+                                        This parameter is responsible for the correction level of the QR code.<LineBreak/><LineBreak/>
+                                        The correction level indicates the maximum possible percentage of data<LineBreak/>
+                                        loss that can be recovered.<LineBreak/><LineBreak/>
+                                        The percentages:<LineBreak/>
+                                        L - 7%,<LineBreak/>
+                                        M - 15%,<LineBreak/>
+                                        Q - 25%,<LineBreak/>
+                                        H - 30%.
+                                    </TextBlock>
+                                </ToolTip>
+                            </Image.ToolTip>
                         </Image>
                     </Grid>
 
@@ -873,42 +999,22 @@
                               Height="40"
                               Width="200"
                               HorizontalAlignment="Left"
-                              Margin="30 5 0 0">
-                        <ComboBoxItem>Numeric</ComboBoxItem>
-                        <ComboBoxItem>Alphanumeric</ComboBoxItem>
-                        <ComboBoxItem IsSelected="True">Binary</ComboBoxItem>
-                    </ComboBox>
-                    <Grid>
-                        <Label Margin="25 5 0 0"
-                               HorizontalAlignment="Left">Correction level</Label>
-                        <Image Source="Assets/Question.png"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Right"
-                               Margin="0 4 3 0"
-                               Width="30"
-                               Height="30">
-                        </Image>
-                    </Grid>
+                              Margin="30 5 0 0"
+                              ItemsSource="{Binding CorrectionLevels}"
+                              SelectedItem="{Binding SelectedCorrectionLevel}">
 
-                    <ComboBox Style="{StaticResource ComboBoxStyle}"
-                              Height="40"
-                              Width="200"
-                              HorizontalAlignment="Left"
-                              Margin="30 5 0 0">
-                        <ComboBoxItem>L (7%)</ComboBoxItem>
-                        <ComboBoxItem IsSelected="True">M (15%)</ComboBoxItem>
-                        <ComboBoxItem>Q (25%)</ComboBoxItem>
-                        <ComboBoxItem>H (30%)</ComboBoxItem>
                     </ComboBox>
 
+                    <!-- Reset settings button -->
                     <Grid>
                         <Button Style="{StaticResource ButtonStyle}"
                                 Width="250"
                                 Height="50"
                                 Background="{StaticResource MainColor}"
-                                Foreground="{StaticResource SecondaryColor}"
+                                Foreground="{StaticResource UserTextColor}"
                                 Content="Reset to defaults"
-                                Margin="0 30 0 0">
+                                Margin="0 30 0 0"
+                                Command="{Binding ResetToDefaultsCommand}">
                             <Button.Resources>
                                 <Style TargetType="{x:Type Border}">
                                     <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"></Setter>
@@ -919,9 +1025,6 @@
                     </Grid>
                 </StackPanel>
             </ScrollViewer>
-            <Border.RenderTransform>
-                <TranslateTransform X="-400"/>
-            </Border.RenderTransform>
         </Border>
     </Grid>
 </Window>

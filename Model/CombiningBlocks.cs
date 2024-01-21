@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace QR_Code_Generator
+namespace QR_Code_Generator.Model
 {
     /// <summary>
     /// This class is responsible for combining data blocks with correction blocks
@@ -12,7 +12,7 @@ namespace QR_Code_Generator
         /// </summary>
         public static void Combine()
         {
-            StringBuilder finalSequence = new StringBuilder();
+            StringBuilder finalSequence = new();
 
             int maxDataBlockLength = SeparationIntoBlocks.Blocks[^1].Length;
             int blocksAmount = SeparationIntoBlocks.Blocks.Length;
