@@ -187,7 +187,7 @@ namespace QR_Code_Generator.ViewModel
                 Directory.CreateDirectory(directory);
             }
 
-            return initialDirectory.ToString();
+            return directory;
         }
 
         private string _savePath = s_initialDirectory;
