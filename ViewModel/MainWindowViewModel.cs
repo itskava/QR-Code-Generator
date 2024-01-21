@@ -178,7 +178,14 @@ namespace QR_Code_Generator.ViewModel
                 initialDirectory.Append(exeDirectory[i]);
             }
 
-            initialDirectory.Append("Images");
+            initialDirectory.Append("Images/");
+
+            string directory = initialDirectory.ToString();
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
             return initialDirectory.ToString();
         }

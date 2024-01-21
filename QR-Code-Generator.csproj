@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <Folder Include="Images\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Assets\AppIcon.png" />
     <Resource Include="Assets\Email.png" />
     <Resource Include="Assets\FolderSearch.png" />
