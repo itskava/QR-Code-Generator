@@ -3,6 +3,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using QR_Code_Generator.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -278,7 +279,7 @@ namespace QR_Code_Generator.ViewModel
             }
         }
 
-        private readonly List<CorrectionLevel> _correctionLevels = new()
+        private readonly ObservableCollection<CorrectionLevel> _correctionLevels = new()
         {
             CorrectionLevel.L,
             CorrectionLevel.M,
@@ -286,7 +287,7 @@ namespace QR_Code_Generator.ViewModel
             CorrectionLevel.H
         };
 
-        public List<CorrectionLevel> CorrectionLevels
+        public ObservableCollection<CorrectionLevel> CorrectionLevels
         {
             get { return _correctionLevels; }
         }
@@ -631,7 +632,7 @@ namespace QR_Code_Generator.ViewModel
             }
         }
 
-        private readonly List<string> _networkTypes = new()
+        private readonly ObservableCollection<string> _networkTypes = new()
         {
             "WEP",
             "WPA",
@@ -639,7 +640,7 @@ namespace QR_Code_Generator.ViewModel
             "No encryption"
         };
 
-        public List<string> NetworkTypes 
+        public ObservableCollection<string> NetworkTypes 
         {
             get { return _networkTypes; }
         }
