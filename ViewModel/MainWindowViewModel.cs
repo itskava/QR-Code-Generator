@@ -394,7 +394,7 @@ namespace QR_Code_Generator.ViewModel
             else
             {
                 SaveFileDialog saveFileDialog = new();
-                saveFileDialog.Filter = "Jpeg image |*.jpg|Png image|*.png|Bitmap image|*.bmp";
+                saveFileDialog.Filter = "JPEG image |*.jpg|PNG image|*.png|BMP image|*.bmp";
 
                 if (saveFileDialog.ShowDialog() == true)
                 {
@@ -602,7 +602,7 @@ namespace QR_Code_Generator.ViewModel
             }
         }
 
-        private bool ValidatePhoneNumber(string number)
+        private static bool ValidatePhoneNumber(string number)
         {
             int plusCount = number.Count(f => f == '+');
 
@@ -622,6 +622,7 @@ namespace QR_Code_Generator.ViewModel
         #region WiFi
 
         private string _networkName = string.Empty;
+
         public string NetworkName
         {
             get { return _networkName; }
@@ -774,7 +775,7 @@ namespace QR_Code_Generator.ViewModel
                 }
                 case 2:
                 {
-                    if (SendTo.Length == 0 || Subject.Length == 0 || EmailText.Length == 0) return false;
+                    if (SendTo.Length == 0 || EmailText.Length == 0) return false;
                     break;
                 }
                 case 3:

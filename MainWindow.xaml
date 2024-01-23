@@ -631,7 +631,7 @@
                     <TabItem.Header>
                         <StackPanel Cursor="Hand">
                             <Image Source="Assets/WiFi.png" Width="40" Height="40"></Image>
-                            <Label>WiFi</Label>
+                            <Label>Wi-Fi</Label>
                         </StackPanel>
                     </TabItem.Header>
                     

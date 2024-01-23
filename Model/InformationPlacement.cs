@@ -161,8 +161,10 @@ namespace QR_Code_Generator.Model
         /// This method is used to place all the necessary information on the
         /// QR code for its subsequent rendering
         /// </summary>
-        public static void PlaceInformation()
+        public static void PlaceInformation() 
         {
+            s_alignmentPatternsCoords?.Clear();
+
             /* The smallest QR code (version 1) has a size of 21 modules. Each next one is larger
                than the previous one by 4 modules */
             QRSize = (short)((Configuration.Version - 1) * 4 + 21);
