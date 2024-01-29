@@ -1,4 +1,4 @@
-﻿#nullable disable
+﻿#pragma warning disable IDE0230
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace QR_Code_Generator.Model
     {
         /* This array contains the grid nodes vertically and horizontally
            where the center modules of the alignment patterns are located */
-        private static readonly byte[][] s_alignmentPatternsPlacement =
+        private static readonly byte[]?[] s_alignmentPatternsPlacement =
         {
             null,
             new byte[] { 18 },
@@ -58,7 +58,7 @@ namespace QR_Code_Generator.Model
         };
 
         // This list contains the coordinates of each center of the alignment pattern 
-        private static List<byte[]> s_alignmentPatternsCoords;
+        private static List<byte[]>? s_alignmentPatternsCoords = null;
 
         // This array contains the version codes for each version starting with version 7
         private static readonly string[] s_versionCodes =
@@ -152,6 +152,7 @@ namespace QR_Code_Generator.Model
             "000100000111011"
         };
 
+        // This variable corresponds to one of 8 masks
         private static int s_maskIndex;
 
         // This property contains the size of the QR code in modules
@@ -166,8 +167,6 @@ namespace QR_Code_Generator.Model
         /// </summary>
         public static void PlaceInformation() 
         {
-            s_alignmentPatternsCoords?.Clear();
-
             /* The smallest QR code (version 1) has a size of 21 modules. Each next one is larger
                than the previous one by 4 modules */
             QRSize = (short)((Configuration.Version - 1) * 4 + 21);
@@ -186,18 +185,19 @@ namespace QR_Code_Generator.Model
 
             if (Configuration.IsOptimized)
             {
-                ChooseBestMask();
+                ChooseBestMask(); /* In case if user chose the optimization,
+                                   * we have to select the best mask for a QR-code*/
             }
             else
             {
                 Random randomMaskIndex = new();
                 s_maskIndex = randomMaskIndex.Next(0, 8);
                 PlaceRemainingData(); /* Placing the remaining data (a bit sequence that was obtained 
-                                       * by combining data and correction blocks) using random mask */
+                                       * by combining data and correction blocks) eeusing random mask */
                 PlaceMaskAndCorrectionLevelCodes(); // Placing the mask and correction level codes
             }
 
-            AddIndent(); // Placing the indent
+            AddIndent(); // Placing the indent (4 white modules around the QR-code for scaenners)
 
             // All the data is collected and ready to be displayed
         }
@@ -286,6 +286,8 @@ namespace QR_Code_Generator.Model
             // The smallest QR code has no alignment patterns
             if (Configuration.Version == 1) return;
 
+            if (s_alignmentPatternsCoords?.Count != 0) s_alignmentPatternsCoords?.Clear();
+
             s_alignmentPatternsCoords = new();
             byte[] alignmentPatterns = s_alignmentPatternsPlacement[Configuration.Version - 1];
 
@@ -308,10 +310,12 @@ namespace QR_Code_Generator.Model
                     // Once we get the center point of the current pattern, we have to render its borders
                     FillAlignmentPattern(centerPointI, centerPointJ);
                     // Saving the center point of the pattern in the list
-                    s_alignmentPatternsCoords.Add(new byte[2] { alignmentPatterns[i], alignmentPatterns[j] });
+                    s_alignmentPatternsCoords.Add(new byte[2] { alignmentPatterns[i], alignmentPatterns[j] } );
+                    #nullable enable
                 }
             }
         }
+
 
         /// <summary>
         /// This method is used to place the borders of the alignment pattern on a QR code
@@ -372,7 +376,7 @@ namespace QR_Code_Generator.Model
         /// </summary>
         private static void PlaceMaskAndCorrectionLevelCodes()
         {
-            string[] maskCode = null;
+            string[] maskCode = Array.Empty<string>();
 
             // Mask code depends on the correction level
             switch (Configuration.CorrectionLevel)
@@ -383,7 +387,7 @@ namespace QR_Code_Generator.Model
                 case CorrectionLevel.H: { maskCode = s_hMaskCodes; break; }
             }
 
-            string mask = maskCode[s_maskIndex]; // DEFAULT
+            string mask = maskCode[s_maskIndex];
 
             for (int i = 0; i < 6; ++i)
             {
@@ -786,8 +790,8 @@ namespace QR_Code_Generator.Model
         /// </summary>
         private static bool IsPenaltySequence(int row, int column)
         {
-            byte[] middleSequence = new byte[] { 1, 0, 1, 1, 1, 0, 1 };
-            byte[] sideSequence = new byte[] { 0, 0, 0, 0 };
+            byte[] middleSequence = { 1, 0, 1, 1, 1, 0, 1 };
+            byte[] sideSequence = { 0, 0, 0, 0 };
 
             if (!QRCode[row][column..(column + 7)].SequenceEqual(middleSequence))
             {
