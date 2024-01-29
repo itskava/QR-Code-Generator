@@ -966,8 +966,7 @@
                                     <TextBlock Style="{StaticResource TooltipTextStyle}">
                                         This parameter is responsible for optimizating of the QR-code.<LineBreak/><LineBreak/>
                                         Optimization is used to prevent artifacts that confuse the reading software.<LineBreak/><LineBreak/>
-                                        Can significantly affect generation time.<LineBreak/><LineBreak/>
-                                        Currently not available.
+                                        Can significantly affect generation time.
                                     </TextBlock>
                                 </ToolTip>
                             </Image.ToolTip>

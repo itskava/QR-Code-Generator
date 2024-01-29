@@ -298,7 +298,7 @@ namespace QR_Code_Generator.ViewModel
         {
             get
             {
-                _resetToDefaultsCommand ??= new RelayCommand(execute => ExecuteResetToDefaultsCommand());
+                _resetToDefaultsCommand ??= new RelayCommand(execute => ExecuteResetToDefaultsCommand(), null);
 
                 return _resetToDefaultsCommand;
             }

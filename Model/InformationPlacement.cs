@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QR_Code_Generator.Model
 {
@@ -151,6 +152,8 @@ namespace QR_Code_Generator.Model
             "000100000111011"
         };
 
+        private static int s_maskIndex;
+
         // This property contains the size of the QR code in modules
         public static short QRSize { get; private set; }
 
@@ -175,14 +178,26 @@ namespace QR_Code_Generator.Model
                 QRCode[i] = new byte[QRSize];
             }
 
+
             PlaceSearchPatterns(); // Placing the search patterns
             PlaceSynchronizationStrips(); // Placing the sync strips
             PlaceAlignmentPatterns(); // Placing the alignment patterns (if version > 1)
             PlaceVersionCode(); // Placing the version code (if version > 6)
-            PlaceRemainingData(); /* Placing the remaining data
-                                    (a bit sequence that was obtained by combining data and correction blocks) */
-            PlaceMaskAndCorrectionLevelCodes(); // Placing the mask and correction level codes
-            AddIndent();
+
+            if (Configuration.IsOptimized)
+            {
+                ChooseBestMask();
+            }
+            else
+            {
+                Random randomMaskIndex = new();
+                s_maskIndex = randomMaskIndex.Next(0, 8);
+                PlaceRemainingData(); /* Placing the remaining data (a bit sequence that was obtained 
+                                       * by combining data and correction blocks) using random mask */
+                PlaceMaskAndCorrectionLevelCodes(); // Placing the mask and correction level codes
+            }
+
+            AddIndent(); // Placing the indent
 
             // All the data is collected and ready to be displayed
         }
@@ -368,7 +383,7 @@ namespace QR_Code_Generator.Model
                 case CorrectionLevel.H: { maskCode = s_hMaskCodes; break; }
             }
 
-            string mask = maskCode[0]; // DEFAULT
+            string mask = maskCode[s_maskIndex]; // DEFAULT
 
             for (int i = 0; i < 6; ++i)
             {
@@ -574,10 +589,225 @@ namespace QR_Code_Generator.Model
             }
         }
         
-        // TODO 
+        /// <summary>
+        /// This method is used to apply particular mask to the data modules
+        /// </summary>
         private static byte ApplyMask(int row, int column)
         {
-            return (byte)((column + row) % 2);
+            return s_maskIndex switch
+            {
+                0 => (byte)((column + row) % 2),
+                1 => (byte)(row % 2),
+                2 => (byte)(column % 3),
+                3 => (byte)((column + row) % 3),
+                4 => (byte)((column / 3 + row / 2) % 2),
+                5 => (byte)((column * row) % 2 + (column * row) % 3),
+                6 => (byte)(((column * row) % 2 + (column * row) % 3) % 2),
+                7 => (byte)(((column * row) % 3 + (column + row) % 2) % 2),
+                _ => throw new()
+            };
+        }
+
+        /// <summary>
+        /// This method is used to find the most suitable mask for a QR-code
+        /// </summary>
+        private static void ChooseBestMask()
+        {
+            byte[][] QRCopy = new byte[QRSize][];
+            for (int i = 0; i < QRSize; i++)
+            {
+                QRCopy[i] = new byte[QRSize];
+            }
+
+            int currentMaxPenaltyPoints = int.MaxValue;
+
+            for (int maskIndex = 0; maskIndex < 8; ++maskIndex)
+            {
+                s_maskIndex = maskIndex;
+                PlaceRemainingData();
+                PlaceMaskAndCorrectionLevelCodes();
+
+                int currentPenaltyPoints = CountPenaltyPoints();
+
+                if (currentPenaltyPoints < currentMaxPenaltyPoints)
+                {
+                    currentMaxPenaltyPoints = currentPenaltyPoints;
+                    Array.Copy(QRCode, QRCopy, QRCode.Length);
+                }
+            }
+            
+            Array.Copy(QRCopy, QRCode, QRCopy.Length);
+        }
+
+        /// <summary>
+        /// This method is used to get the penalty points for a QR-code with a currently applied mask
+        /// </summary>
+        private static int CountPenaltyPoints()
+        {
+            int penaltyPoints = 0;
+
+            #region Rule 1
+            /* The rule 1 states:
+             * Horizontally and vertically, for every 5 or more consecutive modules of the same color,
+             * the number of points equal to the length of that section minus 2 will be awarded */
+
+            // Checking horizontal sections
+            for (int row = 0; row < QRSize; ++row)
+            {
+                int leftPtr = 0, rightPtr = 0;
+                bool canPointsBeAdded = true;
+
+                while ((rightPtr != QRSize - 1) && (leftPtr != rightPtr && rightPtr != 0)) // Going through the current row until both pointers reach its end
+                {
+                    if ((rightPtr != QRSize - 1) && (QRCode[row][leftPtr] == QRCode[row][rightPtr]))
+                    {
+                        if (!canPointsBeAdded) 
+                            canPointsBeAdded = true;
+
+                        rightPtr++;
+                    }
+                    else
+                    {
+                        if (canPointsBeAdded && (rightPtr - leftPtr) >= 5)
+                        {
+                            if (rightPtr == QRSize - 1) 
+                                penaltyPoints += rightPtr - leftPtr - 1; /* The difference appears because
+                                                                          * we can't move the right pointer 
+                                                                          * beyond the end of the row */
+                            else
+                                penaltyPoints += rightPtr - leftPtr - 2;
+                            
+                            canPointsBeAdded = false;
+                        }
+
+                        leftPtr++;
+                    }
+                }
+            }
+
+            // Checking vertical sections
+            for (int column = 0; column < QRSize; ++column)
+            {
+                int upPtr = 0, downPtr = 0;
+                bool canPointsBeAdd = true;
+
+                while ((downPtr != QRSize - 1) && (upPtr != downPtr && downPtr != 0)) // Going through the current column until both pointers reach its end
+                {
+                    if ((downPtr != QRSize - 1) && (QRCode[upPtr][column] == QRCode[downPtr][column]))
+                    {
+                        if (!canPointsBeAdd) 
+                            canPointsBeAdd = true;
+                        
+                        downPtr++;
+                    }
+                    else
+                    {
+                        if (canPointsBeAdd && (downPtr - upPtr) >= 5)
+                        {
+                            if (downPtr == QRSize - 1)
+                                penaltyPoints += downPtr - upPtr - 1; // The same difference appears
+
+                            else
+                                penaltyPoints -= downPtr - upPtr - 2;
+
+                            canPointsBeAdd = false;
+                        }
+
+                        upPtr++;
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Rule 2
+            /* The rule 2 states:
+             * For each 2x2 square of modules of the same color 3 points will be awarded */
+
+            for (int i = 0; i < QRSize - 1; ++i)
+            {
+                for (int j = 0; j < QRSize - 1; ++j)
+                {
+                    if (QRCode[i][j] == QRCode[i][j + 1] && 
+                        QRCode[i][j + 1] == QRCode[i + 1][j + 1] &&
+                        QRCode[i + 1][j + 1] == QRCode[i + 1][j])
+                    {
+                        penaltyPoints += 3;
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Rule 3
+            /* The rule 3 states:
+             * For each sequence of BWBBBWB modules (B - black, W - white) with 4 white modules
+             * on one side (or 2 at once), 40 points will be awarded */
+
+            for (int i = 0; i < QRSize; ++i)
+            {
+                for (int j = 0; j < QRSize - 7; ++j)
+                {
+                    if (IsPenaltySequence(i, j))
+                    {
+                        penaltyPoints += 40;
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Rule 4
+            /* The rule 4 states:
+             * Divite the number of black modules by the total number of modules, multiply the 
+             * result by 100 and subtract 50, then discard the decimal part and take the modulus
+             * of the number, and finally multiply the resulting number by 2 and add it to the
+             * penalty points. */
+
+            int blackModulesCount = 0;
+
+            for (int i = 0; i < QRSize; ++i)
+            {
+                for (int j = 0; j < QRSize; ++j)
+                {
+                    if (QRCode[i][j] == 1) blackModulesCount++;
+                }
+            }
+
+            penaltyPoints += Math.Abs((int)(Math.Floor(((double)(blackModulesCount) / (QRSize * QRSize) * 100 - 50)))) * 2; // yeah
+
+            #endregion
+
+            return penaltyPoints;
+        }
+
+        /// <summary>
+        /// This method is used to detect the sequence by rule 3
+        /// </summary>
+        private static bool IsPenaltySequence(int row, int column)
+        {
+            byte[] middleSequence = new byte[] { 1, 0, 1, 1, 1, 0, 1 };
+            byte[] sideSequence = new byte[] { 0, 0, 0, 0 };
+
+            if (!QRCode[row][column..(column + 7)].SequenceEqual(middleSequence))
+            {
+                return false;
+            }
+
+            if (column > 3 && QRCode[row][(column - 4)..column].SequenceEqual(sideSequence))
+            {
+                return true;
+            }
+
+            else if (column < QRSize - 11 && QRCode[row][(column + 7)..(column + 11)].SequenceEqual(sideSequence))
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
